@@ -19,23 +19,15 @@ tasks:
 
   install:
     desc: Build and install the provider to the local plugins directory for OpenTofu or Terraform
-    interactive: true
     cmds:
       - |
         git fetch --tags
-        TAGS=$(git tag --sort=-v:refname)
-        if [ -z "$TAGS" ]; then
+        
+        # Automatically grab the latest tag (highest version)
+        VERSION=$(git tag --sort=-v:refname | head -n 1)
+        if [ -z "$VERSION" ]; then
           echo "Error: No semantic version tag found."
           exit 1
-        fi
-        MENU_OPTS=()
-        for t in $TAGS; do
-          MENU_OPTS+=("$t" "")
-        done
-        VERSION=$(whiptail --title "Select Version" --menu "Choose a version to install:" 15 50 8 "${MENU_OPTS[@]}" 3>&1 1>&2 2>&3) || true
-        if [ -z "$VERSION" ]; then
-          echo "Installation cancelled."
-          exit 0
         fi
         
         CURRENT_BRANCH=$(git branch --show-current)
@@ -43,7 +35,7 @@ tasks:
           CURRENT_BRANCH=$(git rev-parse HEAD)
         fi
         
-        echo "Checking out $VERSION..."
+        echo "Checking out latest version: $VERSION..."
         git checkout "$VERSION"
         
         task build
@@ -83,4 +75,3 @@ tasks:
     deps: [install]
     cmds:
       - go run ./cmd/setup -dir {{.CLI_ARGS | default "."}}
-
