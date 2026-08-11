@@ -47,5 +47,5 @@ When developing, do not run web searches for the API. Always use the following s
 - Protect: [https://developer.ui.com/protect/v7.1.87/openapi.json](https://developer.ui.com/protect/v7.1.87/openapi.json)
 
 ## 9. GitHub Actions & CI
-*   **Latest Versions:** ALWAYS use the latest available major versions for GitHub Actions (e.g., `actions/checkout@v7`, `actions/setup-go@v7`, `golangci/golangci-lint-action@v9`). Do not hallucinate or arbitrarily downgrade action versions.
+*   **Latest Versions:** ALWAYS use the latest available major versions for GitHub Actions (e.g., `actions/checkout@v7`, `actions/setup-go@v7`, `golangci/golangci-lint-action@v9`). **DO NOT HALLUCINATE OR GUESS VERSIONS.** You must actively query the GitHub API (e.g., `curl -s https://api.github.com/repos/<owner>/<repo>/releases/latest`) to verify the actual latest version online before making any changes or updates to workflows. Never assume a version like v4 or v5 is the latest without checking.
 *   **Linter Config:** Ensure the `golangci-lint` configuration (`.golangci.yml`) is strictly formatted for `golangci-lint` and does not contain unauthorized/unsupported schema elements.
