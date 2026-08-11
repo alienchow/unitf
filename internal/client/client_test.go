@@ -20,7 +20,7 @@ func TestClient_DoRequest_Success(t *testing.T) {
 
 		// Return a mock response
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"name": "test-network", "purpose": "corporate"}`))
+		_, _ = w.Write([]byte(`{"name": "test-network", "purpose": "corporate"}`))
 	}))
 	defer ts.Close()
 
@@ -55,7 +55,7 @@ func TestClient_DoRequest_Error(t *testing.T) {
 	// Create a mock HTTP server that returns an error
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte(`{"error": "Not Found"}`))
+		_, _ = w.Write([]byte(`{"error": "Not Found"}`))
 	}))
 	defer ts.Close()
 
@@ -81,7 +81,7 @@ func TestClient_GetNetwork(t *testing.T) {
 		}
 
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(mockResp)
+		_ = json.NewEncoder(w).Encode(mockResp)
 	}))
 	defer ts.Close()
 
