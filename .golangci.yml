@@ -3,4 +3,6 @@ linters:
   enable:
     - gosec
     - govet
+formatters:
+  enable:
     - gofmt
