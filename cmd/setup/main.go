@@ -12,12 +12,28 @@ import (
 )
 
 var fileMapping = map[string]string{
-	"unifi_network":               "networks.tf",
-	"unifi_firewall_zone":         "firewall_zones.tf",
-	"unifi_firewall_policy":       "firewall_policies.tf",
-	"unifi_dns_policy":            "dns_policies.tf",
-	"unifi_traffic_matching_list": "traffic_matching_lists.tf",
-	"unifi_protect_camera":        "protect_cameras.tf",
+	// Network resources
+	"unifi_acl_rule":                 "acl_rules.tf",
+	"unifi_acl_rule_ordering":        "acl_rule_orderings.tf",
+	"unifi_device":                   "devices.tf",
+	"unifi_dns_policy":               "dns_policies.tf",
+	"unifi_firewall_policy":          "firewall_policies.tf",
+	"unifi_firewall_policy_ordering": "firewall_policy_orderings.tf",
+	"unifi_firewall_zone":            "firewall_zones.tf",
+	"unifi_hotspot_voucher":          "hotspot_vouchers.tf",
+	"unifi_network":                  "networks.tf",
+	"unifi_traffic_matching_list":    "traffic_matching_lists.tf",
+	"unifi_wifi_broadcast":           "wifi_broadcasts.tf",
+
+	// Protect resources
+	"unifi_protect_camera":   "protect_cameras.tf",
+	"unifi_protect_chime":    "protect_chimes.tf",
+	"unifi_protect_light":    "protect_lights.tf",
+	"unifi_protect_liveview": "protect_liveviews.tf",
+	"unifi_protect_relay":    "protect_relays.tf",
+	"unifi_protect_sensor":   "protect_sensors.tf",
+	"unifi_protect_siren":    "protect_sirens.tf",
+	"unifi_protect_viewer":   "protect_viewers.tf",
 }
 
 func main() {
@@ -78,24 +94,42 @@ locals {
   site_id = data.unifi_sites.default.sites[0].id
 }
 `
+		// #nosec G304,G703
 		if err := os.WriteFile(providersFile, []byte(providersContent), 0600); err != nil {
 			return fmt.Errorf("failed to write providers.tf: %w", err)
 		}
 	}
 
 	initDiscoveryFile := filepath.Join(dir, "init_discovery.tf")
-	discoveryContent := `data "unifi_networks" "all" { site_id = local.site_id }
+	discoveryContent := `data "unifi_acl_rules" "all" { site_id = local.site_id }
+data "unifi_devices" "all" { site_id = local.site_id }
+data "unifi_dns_policies" "all" { site_id = local.site_id }
 data "unifi_firewall_policies" "all" { site_id = local.site_id }
 data "unifi_firewall_zones" "all" { site_id = local.site_id }
-data "unifi_dns_policies" "all" { site_id = local.site_id }
+data "unifi_networks" "all" { site_id = local.site_id }
 data "unifi_traffic_matching_lists" "all" { site_id = local.site_id }
+data "unifi_wifi_broadcasts" "all" { site_id = local.site_id }
+
 data "unifi_cameras" "all" {}
+data "unifi_chimes" "all" {}
+data "unifi_lights" "all" {}
+data "unifi_liveviews" "all" {}
+data "unifi_relays" "all" {}
+data "unifi_sensors" "all" {}
+data "unifi_sirens" "all" {}
+data "unifi_viewers" "all" {}
 
 resource "local_file" "explicit_imports" {
   filename = "explicit_imports.tf"
   content = join("\n", concat([
-    for item in data.unifi_networks.all.items :
-    "import {\n  id = \"${local.site_id}/${item.id}\"\n  to = unifi_network.net_${replace(item.id, "-", "_")}\n}"
+    for item in data.unifi_acl_rules.all.items :
+    "import {\n  id = \"${local.site_id}/${item.id}\"\n  to = unifi_acl_rule.acl_${replace(item.id, "-", "_")}\n}"
+    ], [
+    for item in data.unifi_devices.all.items :
+    "import {\n  id = \"${local.site_id}/${item.id}\"\n  to = unifi_device.dev_${replace(item.id, "-", "_")}\n}"
+    ], [
+    for item in data.unifi_dns_policies.all.items :
+    "import {\n  id = \"${local.site_id}/${item.id}\"\n  to = unifi_dns_policy.dns_${replace(item.id, "-", "_")}\n}"
     ], [
     for item in data.unifi_firewall_policies.all.items :
     "import {\n  id = \"${local.site_id}/${item.id}\"\n  to = unifi_firewall_policy.fw_${replace(item.id, "-", "_")}\n}"
@@ -103,14 +137,38 @@ resource "local_file" "explicit_imports" {
     for item in data.unifi_firewall_zones.all.items :
     "import {\n  id = \"${local.site_id}/${item.id}\"\n  to = unifi_firewall_zone.zone_${replace(item.id, "-", "_")}\n}"
     ], [
-    for item in data.unifi_dns_policies.all.items :
-    "import {\n  id = \"${local.site_id}/${item.id}\"\n  to = unifi_dns_policy.dns_${replace(item.id, "-", "_")}\n}"
+    for item in data.unifi_networks.all.items :
+    "import {\n  id = \"${local.site_id}/${item.id}\"\n  to = unifi_network.net_${replace(item.id, "-", "_")}\n}"
     ], [
     for item in data.unifi_traffic_matching_lists.all.items :
     "import {\n  id = \"${local.site_id}/${item.id}\"\n  to = unifi_traffic_matching_list.traffic_${replace(item.id, "-", "_")}\n}"
     ], [
-    for cam in data.unifi_cameras.all.items :
-    "import {\n  id = \"${cam.id}\"\n  to = unifi_protect_camera.cam_${replace(cam.id, "-", "_")}\n}"
+    for item in data.unifi_wifi_broadcasts.all.items :
+    "import {\n  id = \"${local.site_id}/${item.id}\"\n  to = unifi_wifi_broadcast.wifi_${replace(item.id, "-", "_")}\n}"
+    ], [
+    for item in data.unifi_cameras.all.items :
+    "import {\n  id = \"${item.id}\"\n  to = unifi_protect_camera.cam_${replace(item.id, "-", "_")}\n}"
+    ], [
+    for item in data.unifi_chimes.all.items :
+    "import {\n  id = \"${item.id}\"\n  to = unifi_protect_chime.chime_${replace(item.id, "-", "_")}\n}"
+    ], [
+    for item in data.unifi_lights.all.items :
+    "import {\n  id = \"${item.id}\"\n  to = unifi_protect_light.light_${replace(item.id, "-", "_")}\n}"
+    ], [
+    for item in data.unifi_liveviews.all.items :
+    "import {\n  id = \"${item.id}\"\n  to = unifi_protect_liveview.lv_${replace(item.id, "-", "_")}\n}"
+    ], [
+    for item in data.unifi_relays.all.items :
+    "import {\n  id = \"${item.id}\"\n  to = unifi_protect_relay.relay_${replace(item.id, "-", "_")}\n}"
+    ], [
+    for item in data.unifi_sensors.all.items :
+    "import {\n  id = \"${item.id}\"\n  to = unifi_protect_sensor.sensor_${replace(item.id, "-", "_")}\n}"
+    ], [
+    for item in data.unifi_sirens.all.items :
+    "import {\n  id = \"${item.id}\"\n  to = unifi_protect_siren.siren_${replace(item.id, "-", "_")}\n}"
+    ], [
+    for item in data.unifi_viewers.all.items :
+    "import {\n  id = \"${item.id}\"\n  to = unifi_protect_viewer.viewer_${replace(item.id, "-", "_")}\n}"
   ]))
 }
 `
