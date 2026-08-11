@@ -64,6 +64,7 @@ func main() {
 }
 
 func runCommand(ctx context.Context, dir, name string, args ...string) error {
+	// #nosec G204 -- The 'name' executable is strictly controlled by getTofuOrTerraform()
 	cmd := exec.CommandContext(ctx, name, args...)
 	cmd.Dir = dir
 	cmd.Stdout = os.Stdout
@@ -210,7 +211,8 @@ func runStep2GenerateBaseline(dir string) error {
 		return fmt.Errorf("failed to generate baseline config: %w", err)
 	}
 
-	content, err := os.ReadFile(baselineFile)
+	// #nosec G304
+	content, err := os.ReadFile(filepath.Clean(baselineFile))
 	if err != nil {
 		return fmt.Errorf("failed to read generated baseline.tf: %w", err)
 	}
