@@ -1,0 +1,8 @@
+{
+  "id": "d367f7dd-a077-44d4-81e6-5327388d3561",
+  "domain": "unifi.internal",
+  "enabled": true,
+  "type": "A_RECORD",
+  "ipv4Address": "192.168.1.1",
+  "ttlSeconds": 300
+}

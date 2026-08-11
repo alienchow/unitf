@@ -13,7 +13,7 @@ These guidelines are meant for autonomous AI agents contributing to this codebas
 *   Example: `network_res` depends on `client.NetworkClient` interface, not `*client.Client`.
 
 ## 3. Unit Testing, Mocking & Testdata
-*   **Unit Tests are Mandatory:** Every new resource or data source must include comprehensive unit tests.
+*   **Unit Tests are Mandatory:** Every new resource, data source, CLI command, or utility function must include comprehensive unit tests. Please be overzealous in unit testing everything. Maximise unit test coverage.
 *   **Testdata Pattern:** Do not inline large raw text blocks or JSON payloads in your test files. Instead, use the `testdata/` directory pattern to store mock inputs (e.g., API responses) and expected outputs (e.g., Terraform states or plan objects). Read these files during test execution.
 *   **Mocking:** Use the dependency injected interfaces to mock external API interactions where possible, or use Terraform's testing framework (`resource.UnitTest`) to validate configurations and plans using the aforementioned `testdata/` files.
 *   Ensure that edge cases (like invalid types or missing required fields) are captured in unit tests.
