@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -27,7 +27,7 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Go
-        uses: actions/setup-go@v7
+        uses: actions/setup-go@v5
         with:
           go-version-file: 'go.mod'
 
