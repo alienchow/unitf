@@ -54,7 +54,7 @@ func NewClient(host, apiKey string, insecure bool) (*Client, error) {
 
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{
-			InsecureSkipVerify: insecure,
+			InsecureSkipVerify: insecure, //nolint:gosec // user explicitly allowed insecure skip verify
 		},
 	}
 
@@ -84,7 +84,7 @@ func (c *Client) DoRequest(ctx context.Context, method, path string, body interf
 
 	var resp *http.Response
 	var respBuf []byte
-	delays := []time.Duration{1 * time.Second, 2 * time.Second, 4 * time.Second}
+	delays := []time.Duration{1 * time.Second, 2 * time.Second, 4 * time.Second, 8 * time.Second}
 
 	for attempt := 0; attempt <= 3; attempt++ {
 		var reqBody io.Reader
@@ -118,7 +118,7 @@ func (c *Client) DoRequest(ctx context.Context, method, path string, body interf
 			time.Sleep(delays[attempt])
 			continue
 		}
-		
+
 		break
 	}
 
@@ -147,4 +147,3 @@ func (c *Client) DoRequest(ctx context.Context, method, path string, body interf
 
 	return nil
 }
-
