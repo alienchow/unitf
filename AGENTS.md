@@ -27,3 +27,11 @@ These guidelines are meant for autonomous AI agents contributing to this codebas
 ## 5. Security & Credentials
 *   Never hardcode API keys or sensitive endpoints.
 *   Use `terraform-plugin-framework`'s provider configuration options to accept credentials, or fallback to environment variables.
+
+## 6. Versioning & Commit Standards
+*   **Semantic Versioning:** Strictly follow Semantic Versioning (SemVer). The `VERSION` variable in `Taskfile.yml` must adhere to these rules.
+*   **Conventional Commits:** Always use Conventional Commits (e.g., `feat:`, `fix:`, `chore:`).
+*   **Commit Message Structure:** All commit messages must explicitly include the following sections in the body:
+    *   **Context:** (Explain why this change is being made)
+    *   **Changes:** (Describe what modifications are included)
+    *   **Tests:** (Detail how this change was validated)
