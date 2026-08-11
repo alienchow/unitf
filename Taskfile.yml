@@ -52,3 +52,10 @@ tasks:
         mv $BINARY_NAME "$TARGET_DIR/$BINARY_NAME"
         
         echo "Installation complete!"
+
+  setup-workspace:
+    desc: Initialize an OpenTofu workspace from scratch, generate explicit imports and baseline, then refactor into segmented TF files
+    deps: [install]
+    cmds:
+      - go run ./cmd/setup -dir {{.CLI_ARGS | default "."}}
+
