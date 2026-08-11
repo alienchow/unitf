@@ -65,12 +65,12 @@ func (r *AclRuleOrderingResource) Configure(ctx context.Context, req resource.Co
 	if req.ProviderData == nil {
 		return
 	}
-	c, ok := req.ProviderData.(client.NetworkClient)
+	c, ok := req.ProviderData.(*client.Client)
 	if !ok {
-		resp.Diagnostics.AddError("Unexpected Resource Configure Type", "Expected client.NetworkClient")
+		resp.Diagnostics.AddError("Unexpected Resource Configure Type", "Expected *client.Client")
 		return
 	}
-	r.client = c
+	r.client = c.Network
 }
 
 func (r *AclRuleOrderingResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
@@ -80,19 +80,16 @@ func (r *AclRuleOrderingResource) Create(ctx context.Context, req resource.Creat
 		return
 	}
 
-	dto := &client.AclRuleOrderingDto{}
-	for _, id := range plan.RuleIDs {
-		dto.RuleIDs = append(dto.RuleIDs, id.ValueString())
-	}
+	dto := r.modelToDto(plan)
 
-	_, err := r.client.UpdateAclRuleOrdering(ctx, plan.SiteID.ValueString(), dto)
+	res, err := r.client.UpdateAclRuleOrdering(ctx, plan.SiteID.ValueString(), dto)
 	if err != nil {
 		resp.Diagnostics.AddError("Error Updating UniFi ACL Rule Ordering", err.Error())
 		return
 	}
 
-	plan.ID = plan.SiteID
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	state := r.dtoToModel(plan.SiteID.ValueString(), res)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
 func (r *AclRuleOrderingResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
@@ -104,16 +101,16 @@ func (r *AclRuleOrderingResource) Read(ctx context.Context, req resource.ReadReq
 
 	res, err := r.client.GetAclRuleOrdering(ctx, state.SiteID.ValueString())
 	if err != nil {
+		if client.IsNotFound(err) {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		resp.Diagnostics.AddError("Error Reading UniFi ACL Rule Ordering", err.Error())
 		return
 	}
 
-	state.RuleIDs = make([]types.String, len(res.RuleIDs))
-	for i, id := range res.RuleIDs {
-		state.RuleIDs[i] = types.StringValue(id)
-	}
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	newState := r.dtoToModel(state.SiteID.ValueString(), res)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &newState)...)
 }
 
 func (r *AclRuleOrderingResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
@@ -123,19 +120,16 @@ func (r *AclRuleOrderingResource) Update(ctx context.Context, req resource.Updat
 		return
 	}
 
-	dto := &client.AclRuleOrderingDto{}
-	for _, id := range plan.RuleIDs {
-		dto.RuleIDs = append(dto.RuleIDs, id.ValueString())
-	}
+	dto := r.modelToDto(plan)
 
-	_, err := r.client.UpdateAclRuleOrdering(ctx, plan.SiteID.ValueString(), dto)
+	res, err := r.client.UpdateAclRuleOrdering(ctx, plan.SiteID.ValueString(), dto)
 	if err != nil {
 		resp.Diagnostics.AddError("Error Updating UniFi ACL Rule Ordering", err.Error())
 		return
 	}
 
-	plan.ID = plan.SiteID
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	state := r.dtoToModel(plan.SiteID.ValueString(), res)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
 func (r *AclRuleOrderingResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
@@ -153,4 +147,28 @@ func (r *AclRuleOrderingResource) Delete(ctx context.Context, req resource.Delet
 		resp.Diagnostics.AddError("Error Resetting UniFi ACL Rule Ordering", err.Error())
 		return
 	}
+}
+
+func (r *AclRuleOrderingResource) dtoToModel(siteID string, dto *client.AclRuleOrderingDto) AclRuleOrderingResourceModel {
+	state := AclRuleOrderingResourceModel{
+		ID:     types.StringValue(siteID),
+		SiteID: types.StringValue(siteID),
+	}
+
+	state.RuleIDs = make([]types.String, len(dto.RuleIDs))
+	for i, id := range dto.RuleIDs {
+		state.RuleIDs[i] = types.StringValue(id)
+	}
+
+	return state
+}
+
+func (r *AclRuleOrderingResource) modelToDto(plan AclRuleOrderingResourceModel) *client.AclRuleOrderingDto {
+	dto := &client.AclRuleOrderingDto{}
+	for _, id := range plan.RuleIDs {
+		if !id.IsNull() && !id.IsUnknown() {
+			dto.RuleIDs = append(dto.RuleIDs, id.ValueString())
+		}
+	}
+	return dto
 }

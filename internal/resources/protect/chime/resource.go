@@ -49,10 +49,12 @@ func (r *ProtectChimeResource) Schema(ctx context.Context, req resource.SchemaRe
 			},
 			"name": schema.StringAttribute{
 				Optional:    true,
+				Computed:    true,
 				Description: "Name of the chime.",
 			},
 			"volume": schema.Int64Attribute{
 				Optional:    true,
+				Computed:    true,
 				Description: "Volume level.",
 			},
 		},
@@ -63,12 +65,12 @@ func (r *ProtectChimeResource) Configure(ctx context.Context, req resource.Confi
 	if req.ProviderData == nil {
 		return
 	}
-	c, ok := req.ProviderData.(client.ProtectClient)
+	c, ok := req.ProviderData.(*client.Client)
 	if !ok {
-		resp.Diagnostics.AddError("Unexpected Resource Configure Type", "Expected client.ProtectClient")
+		resp.Diagnostics.AddError("Unexpected Resource Configure Type", "Expected *client.Client")
 		return
 	}
-	r.client = c
+	r.client = c.Protect
 }
 
 func (r *ProtectChimeResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
@@ -78,20 +80,16 @@ func (r *ProtectChimeResource) Create(ctx context.Context, req resource.CreateRe
 		return
 	}
 
-	dto := &client.ChimeDto{
-		Name: plan.Name.ValueString(),
-	}
-	if !plan.Volume.IsNull() {
-		dto.Volume = int(plan.Volume.ValueInt64())
-	}
+	dto := r.modelToDto(plan)
 
-	_, err := r.client.UpdateChime(ctx, plan.ID.ValueString(), dto)
+	res, err := r.client.UpdateChime(ctx, plan.ID.ValueString(), dto)
 	if err != nil {
 		resp.Diagnostics.AddError("Error Configuring UniFi Protect Chime", err.Error())
 		return
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	state := r.dtoToModel(plan.ID.ValueString(), res)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
 func (r *ProtectChimeResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
@@ -111,10 +109,8 @@ func (r *ProtectChimeResource) Read(ctx context.Context, req resource.ReadReques
 		return
 	}
 
-	state.Name = types.StringValue(res.Name)
-	state.Volume = types.Int64Value(int64(res.Volume))
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	newState := r.dtoToModel(state.ID.ValueString(), res)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &newState)...)
 }
 
 func (r *ProtectChimeResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
@@ -124,20 +120,16 @@ func (r *ProtectChimeResource) Update(ctx context.Context, req resource.UpdateRe
 		return
 	}
 
-	dto := &client.ChimeDto{
-		Name: plan.Name.ValueString(),
-	}
-	if !plan.Volume.IsNull() {
-		dto.Volume = int(plan.Volume.ValueInt64())
-	}
+	dto := r.modelToDto(plan)
 
-	_, err := r.client.UpdateChime(ctx, plan.ID.ValueString(), dto)
+	res, err := r.client.UpdateChime(ctx, plan.ID.ValueString(), dto)
 	if err != nil {
 		resp.Diagnostics.AddError("Error Updating UniFi Protect Chime", err.Error())
 		return
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	state := r.dtoToModel(plan.ID.ValueString(), res)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
 func (r *ProtectChimeResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
@@ -146,4 +138,23 @@ func (r *ProtectChimeResource) Delete(ctx context.Context, req resource.DeleteRe
 
 func (r *ProtectChimeResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+}
+
+func (r *ProtectChimeResource) dtoToModel(id string, dto *client.ChimeDto) ProtectChimeResourceModel {
+	return ProtectChimeResourceModel{
+		ID:     types.StringValue(id),
+		Name:   types.StringValue(dto.Name),
+		Volume: types.Int64Value(int64(dto.Volume)),
+	}
+}
+
+func (r *ProtectChimeResource) modelToDto(model ProtectChimeResourceModel) *client.ChimeDto {
+	dto := &client.ChimeDto{}
+	if !model.Name.IsNull() && !model.Name.IsUnknown() {
+		dto.Name = model.Name.ValueString()
+	}
+	if !model.Volume.IsNull() && !model.Volume.IsUnknown() {
+		dto.Volume = int(model.Volume.ValueInt64())
+	}
+	return dto
 }

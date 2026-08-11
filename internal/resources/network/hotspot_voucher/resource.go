@@ -77,6 +77,7 @@ func (r *HotspotVoucherResource) Schema(ctx context.Context, req resource.Schema
 			},
 			"qos_rate_max_up": schema.Int64Attribute{
 				Optional:    true,
+				Computed:    true,
 				Description: "Max upload rate (kbps).",
 				PlanModifiers: []planmodifier.Int64{
 					int64planmodifier.RequiresReplace(),
@@ -84,6 +85,7 @@ func (r *HotspotVoucherResource) Schema(ctx context.Context, req resource.Schema
 			},
 			"qos_rate_max_down": schema.Int64Attribute{
 				Optional:    true,
+				Computed:    true,
 				Description: "Max download rate (kbps).",
 				PlanModifiers: []planmodifier.Int64{
 					int64planmodifier.RequiresReplace(),
@@ -104,12 +106,12 @@ func (r *HotspotVoucherResource) Configure(ctx context.Context, req resource.Con
 	if req.ProviderData == nil {
 		return
 	}
-	c, ok := req.ProviderData.(client.NetworkClient)
+	c, ok := req.ProviderData.(*client.Client)
 	if !ok {
-		resp.Diagnostics.AddError("Unexpected Resource Configure Type", "Expected client.NetworkClient")
+		resp.Diagnostics.AddError("Unexpected Resource Configure Type", "Expected *client.Client")
 		return
 	}
-	r.client = c
+	r.client = c.Network
 }
 
 func (r *HotspotVoucherResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
@@ -119,16 +121,7 @@ func (r *HotspotVoucherResource) Create(ctx context.Context, req resource.Create
 		return
 	}
 
-	dto := &client.HotspotVoucherDto{
-		Quota:    int(plan.Quota.ValueInt64()),
-		Duration: int(plan.Duration.ValueInt64()),
-	}
-	if !plan.QosRateMaxUp.IsNull() {
-		dto.QosRateMaxUp = int(plan.QosRateMaxUp.ValueInt64())
-	}
-	if !plan.QosRateMaxDown.IsNull() {
-		dto.QosRateMaxDown = int(plan.QosRateMaxDown.ValueInt64())
-	}
+	dto := r.modelToDto(plan)
 
 	err := r.client.CreateHotspotVoucher(ctx, plan.SiteID.ValueString(), dto)
 	if err != nil {
@@ -152,6 +145,10 @@ func (r *HotspotVoucherResource) Read(ctx context.Context, req resource.ReadRequ
 
 	res, err := r.client.GetHotspotVoucher(ctx, state.SiteID.ValueString(), state.ID.ValueString())
 	if err != nil {
+		if client.IsNotFound(err) {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		resp.Diagnostics.AddError("Error Reading UniFi Hotspot Voucher", err.Error())
 		return
 	}
@@ -160,11 +157,8 @@ func (r *HotspotVoucherResource) Read(ctx context.Context, req resource.ReadRequ
 		return
 	}
 
-	state.Quota = types.Int64Value(int64(res.Quota))
-	state.Duration = types.Int64Value(int64(res.Duration))
-	state.Code = types.StringValue(res.Code)
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	newState := r.dtoToModel(state.SiteID.ValueString(), state.ID.ValueString(), res)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &newState)...)
 }
 
 func (r *HotspotVoucherResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
@@ -193,4 +187,38 @@ func (r *HotspotVoucherResource) ImportState(ctx context.Context, req resource.I
 	}
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("site_id"), parts[0])...)
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), parts[1])...)
+}
+
+func (r *HotspotVoucherResource) dtoToModel(siteID, id string, dto *client.HotspotVoucherDto) HotspotVoucherResourceModel {
+	state := HotspotVoucherResourceModel{
+		ID:       types.StringValue(id),
+		SiteID:   types.StringValue(siteID),
+		Quota:    types.Int64Value(int64(dto.Quota)),
+		Duration: types.Int64Value(int64(dto.Duration)),
+		Code:     types.StringValue(dto.Code),
+	}
+	if dto.QosRateMaxUp > 0 {
+		state.QosRateMaxUp = types.Int64Value(int64(dto.QosRateMaxUp))
+	}
+	if dto.QosRateMaxDown > 0 {
+		state.QosRateMaxDown = types.Int64Value(int64(dto.QosRateMaxDown))
+	}
+	return state
+}
+
+func (r *HotspotVoucherResource) modelToDto(model HotspotVoucherResourceModel) *client.HotspotVoucherDto {
+	dto := &client.HotspotVoucherDto{}
+	if !model.Quota.IsNull() && !model.Quota.IsUnknown() {
+		dto.Quota = int(model.Quota.ValueInt64())
+	}
+	if !model.Duration.IsNull() && !model.Duration.IsUnknown() {
+		dto.Duration = int(model.Duration.ValueInt64())
+	}
+	if !model.QosRateMaxUp.IsNull() && !model.QosRateMaxUp.IsUnknown() {
+		dto.QosRateMaxUp = int(model.QosRateMaxUp.ValueInt64())
+	}
+	if !model.QosRateMaxDown.IsNull() && !model.QosRateMaxDown.IsUnknown() {
+		dto.QosRateMaxDown = int(model.QosRateMaxDown.ValueInt64())
+	}
+	return dto
 }

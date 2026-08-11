@@ -75,11 +75,13 @@ func (r *TrafficMatchingListResource) Schema(ctx context.Context, req resource.S
 			"addresses": schema.ListAttribute{
 				ElementType: types.StringType,
 				Optional:    true,
+				Computed:    true,
 				Description: "List of IP addresses.",
 			},
 			"ports": schema.ListAttribute{
 				ElementType: types.StringType,
 				Optional:    true,
+				Computed:    true,
 				Description: "List of ports.",
 			},
 		},
@@ -90,12 +92,12 @@ func (r *TrafficMatchingListResource) Configure(ctx context.Context, req resourc
 	if req.ProviderData == nil {
 		return
 	}
-	c, ok := req.ProviderData.(client.NetworkClient)
+	c, ok := req.ProviderData.(*client.Client)
 	if !ok {
-		resp.Diagnostics.AddError("Unexpected Resource Configure Type", "Expected client.NetworkClient")
+		resp.Diagnostics.AddError("Unexpected Resource Configure Type", "Expected *client.Client")
 		return
 	}
-	r.client = c
+	r.client = c.Network
 }
 
 func (r *TrafficMatchingListResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
@@ -105,16 +107,7 @@ func (r *TrafficMatchingListResource) Create(ctx context.Context, req resource.C
 		return
 	}
 
-	dto := &client.TrafficMatchingListDto{
-		Name: plan.Name.ValueString(),
-		Type: plan.Type.ValueString(),
-	}
-	for _, a := range plan.Addresses {
-		dto.Addresses = append(dto.Addresses, a.ValueString())
-	}
-	for _, p := range plan.Ports {
-		dto.Ports = append(dto.Ports, p.ValueString())
-	}
+	dto := r.modelToDto(plan)
 
 	res, err := r.client.CreateTrafficMatchingList(ctx, plan.SiteID.ValueString(), dto)
 	if err != nil {
@@ -122,8 +115,8 @@ func (r *TrafficMatchingListResource) Create(ctx context.Context, req resource.C
 		return
 	}
 
-	plan.ID = types.StringValue(res.ID)
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	state := r.dtoToModel(plan.SiteID.ValueString(), res.ID, res)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
 func (r *TrafficMatchingListResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
@@ -143,20 +136,8 @@ func (r *TrafficMatchingListResource) Read(ctx context.Context, req resource.Rea
 		return
 	}
 
-	state.Name = types.StringValue(res.Name)
-	state.Type = types.StringValue(res.Type)
-
-	state.Addresses = make([]types.String, len(res.Addresses))
-	for i, a := range res.Addresses {
-		state.Addresses[i] = types.StringValue(a)
-	}
-
-	state.Ports = make([]types.String, len(res.Ports))
-	for i, p := range res.Ports {
-		state.Ports[i] = types.StringValue(p)
-	}
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	newState := r.dtoToModel(state.SiteID.ValueString(), state.ID.ValueString(), res)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &newState)...)
 }
 
 func (r *TrafficMatchingListResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
@@ -166,16 +147,7 @@ func (r *TrafficMatchingListResource) Update(ctx context.Context, req resource.U
 		return
 	}
 
-	dto := &client.TrafficMatchingListDto{
-		Name: plan.Name.ValueString(),
-		Type: plan.Type.ValueString(),
-	}
-	for _, a := range plan.Addresses {
-		dto.Addresses = append(dto.Addresses, a.ValueString())
-	}
-	for _, p := range plan.Ports {
-		dto.Ports = append(dto.Ports, p.ValueString())
-	}
+	dto := r.modelToDto(plan)
 
 	res, err := r.client.UpdateTrafficMatchingList(ctx, plan.SiteID.ValueString(), plan.ID.ValueString(), dto)
 	if err != nil {
@@ -183,8 +155,8 @@ func (r *TrafficMatchingListResource) Update(ctx context.Context, req resource.U
 		return
 	}
 
-	plan.ID = types.StringValue(res.ID)
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	state := r.dtoToModel(plan.SiteID.ValueString(), res.ID, res)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
 func (r *TrafficMatchingListResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
@@ -209,4 +181,48 @@ func (r *TrafficMatchingListResource) ImportState(ctx context.Context, req resou
 	}
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("site_id"), parts[0])...)
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), parts[1])...)
+}
+
+func (r *TrafficMatchingListResource) dtoToModel(siteID string, id string, res *client.TrafficMatchingListDto) TrafficMatchingListResourceModel {
+	state := TrafficMatchingListResourceModel{
+		ID:     types.StringValue(id),
+		SiteID: types.StringValue(siteID),
+		Name:   types.StringValue(res.Name),
+		Type:   types.StringValue(res.Type),
+	}
+
+	state.Addresses = make([]types.String, len(res.Addresses))
+	for i, a := range res.Addresses {
+		state.Addresses[i] = types.StringValue(a)
+	}
+
+	state.Ports = make([]types.String, len(res.Ports))
+	for i, p := range res.Ports {
+		state.Ports[i] = types.StringValue(p)
+	}
+
+	return state
+}
+
+func (r *TrafficMatchingListResource) modelToDto(plan TrafficMatchingListResourceModel) *client.TrafficMatchingListDto {
+	dto := &client.TrafficMatchingListDto{}
+
+	if !plan.Name.IsNull() && !plan.Name.IsUnknown() {
+		dto.Name = plan.Name.ValueString()
+	}
+	if !plan.Type.IsNull() && !plan.Type.IsUnknown() {
+		dto.Type = plan.Type.ValueString()
+	}
+
+	for _, a := range plan.Addresses {
+		if !a.IsNull() && !a.IsUnknown() {
+			dto.Addresses = append(dto.Addresses, a.ValueString())
+		}
+	}
+	for _, p := range plan.Ports {
+		if !p.IsNull() && !p.IsUnknown() {
+			dto.Ports = append(dto.Ports, p.ValueString())
+		}
+	}
+	return dto
 }

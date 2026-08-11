@@ -99,12 +99,12 @@ func (r *DnsPolicyResource) Configure(ctx context.Context, req resource.Configur
 	if req.ProviderData == nil {
 		return
 	}
-	c, ok := req.ProviderData.(client.NetworkClient)
+	c, ok := req.ProviderData.(*client.Client)
 	if !ok {
-		resp.Diagnostics.AddError("Unexpected Resource Configure Type", "Expected client.NetworkClient")
+		resp.Diagnostics.AddError("Unexpected Resource Configure Type", "Expected *client.Client")
 		return
 	}
-	r.client = c
+	r.client = c.Network
 }
 
 func (r *DnsPolicyResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
@@ -114,27 +114,7 @@ func (r *DnsPolicyResource) Create(ctx context.Context, req resource.CreateReque
 		return
 	}
 
-	dto := &client.DnsPolicyDto{
-		Domain:  plan.Name.ValueString(),
-		Enabled: plan.Enabled.ValueBool(),
-		Type:    plan.Type.ValueString(),
-	}
-	val := plan.Value.ValueString()
-	switch dto.Type {
-	case "A_RECORD":
-		dto.IPv4Address = val
-	case "AAAA_RECORD":
-		dto.IPv6Address = val
-	case "CNAME_RECORD":
-		dto.TargetDomain = val
-	case "TXT_RECORD":
-		dto.Text = val
-	case "FORWARD_DOMAIN":
-		dto.IPAddress = val
-	}
-	if !plan.TTL.IsNull() {
-		dto.TTLSeconds = int(plan.TTL.ValueInt64())
-	}
+	dto := r.modelToDto(plan)
 
 	res, err := r.client.CreateDnsPolicy(ctx, plan.SiteID.ValueString(), dto)
 	if err != nil {
@@ -142,8 +122,8 @@ func (r *DnsPolicyResource) Create(ctx context.Context, req resource.CreateReque
 		return
 	}
 
-	plan.ID = types.StringValue(res.ID)
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	state := r.dtoToModel(plan.SiteID.ValueString(), res)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
 func (r *DnsPolicyResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
@@ -163,30 +143,8 @@ func (r *DnsPolicyResource) Read(ctx context.Context, req resource.ReadRequest, 
 		return
 	}
 
-	state.Name = types.StringValue(res.Domain)
-	state.Enabled = types.BoolValue(res.Enabled)
-	state.Type = types.StringValue(res.Type)
-	var val string
-	switch res.Type {
-	case "A_RECORD":
-		val = res.IPv4Address
-	case "AAAA_RECORD":
-		val = res.IPv6Address
-	case "CNAME_RECORD":
-		val = res.TargetDomain
-	case "TXT_RECORD":
-		val = res.Text
-	case "FORWARD_DOMAIN":
-		val = res.IPAddress
-	}
-	state.Value = types.StringValue(val)
-	if res.TTLSeconds > 0 {
-		state.TTL = types.Int64Value(int64(res.TTLSeconds))
-	} else {
-		state.TTL = types.Int64Null()
-	}
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	newState := r.dtoToModel(state.SiteID.ValueString(), res)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &newState)...)
 }
 
 func (r *DnsPolicyResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
@@ -196,27 +154,7 @@ func (r *DnsPolicyResource) Update(ctx context.Context, req resource.UpdateReque
 		return
 	}
 
-	dto := &client.DnsPolicyDto{
-		Domain:  plan.Name.ValueString(),
-		Enabled: plan.Enabled.ValueBool(),
-		Type:    plan.Type.ValueString(),
-	}
-	val := plan.Value.ValueString()
-	switch dto.Type {
-	case "A_RECORD":
-		dto.IPv4Address = val
-	case "AAAA_RECORD":
-		dto.IPv6Address = val
-	case "CNAME_RECORD":
-		dto.TargetDomain = val
-	case "TXT_RECORD":
-		dto.Text = val
-	case "FORWARD_DOMAIN":
-		dto.IPAddress = val
-	}
-	if !plan.TTL.IsNull() {
-		dto.TTLSeconds = int(plan.TTL.ValueInt64())
-	}
+	dto := r.modelToDto(plan)
 
 	res, err := r.client.UpdateDnsPolicy(ctx, plan.SiteID.ValueString(), plan.ID.ValueString(), dto)
 	if err != nil {
@@ -224,8 +162,8 @@ func (r *DnsPolicyResource) Update(ctx context.Context, req resource.UpdateReque
 		return
 	}
 
-	plan.ID = types.StringValue(res.ID)
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	state := r.dtoToModel(plan.SiteID.ValueString(), res)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
 func (r *DnsPolicyResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
@@ -250,4 +188,68 @@ func (r *DnsPolicyResource) ImportState(ctx context.Context, req resource.Import
 	}
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("site_id"), parts[0])...)
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), parts[1])...)
+}
+
+func (r *DnsPolicyResource) dtoToModel(siteID string, dto *client.DnsPolicyDto) DnsPolicyResourceModel {
+	state := DnsPolicyResourceModel{
+		ID:      types.StringValue(dto.ID),
+		SiteID:  types.StringValue(siteID),
+		Name:    types.StringValue(dto.Domain),
+		Enabled: types.BoolValue(dto.Enabled),
+		Type:    types.StringValue(dto.Type),
+	}
+
+	var val string
+	switch dto.Type {
+	case "A_RECORD":
+		val = dto.IPv4Address
+	case "AAAA_RECORD":
+		val = dto.IPv6Address
+	case "CNAME_RECORD":
+		val = dto.TargetDomain
+	case "TXT_RECORD":
+		val = dto.Text
+	case "FORWARD_DOMAIN":
+		val = dto.IPAddress
+	}
+	state.Value = types.StringValue(val)
+	if dto.TTLSeconds > 0 {
+		state.TTL = types.Int64Value(int64(dto.TTLSeconds))
+	} else {
+		state.TTL = types.Int64Null()
+	}
+
+	return state
+}
+
+func (r *DnsPolicyResource) modelToDto(plan DnsPolicyResourceModel) *client.DnsPolicyDto {
+	dto := &client.DnsPolicyDto{}
+	if !plan.Name.IsNull() && !plan.Name.IsUnknown() {
+		dto.Domain = plan.Name.ValueString()
+	}
+	if !plan.Enabled.IsNull() && !plan.Enabled.IsUnknown() {
+		dto.Enabled = plan.Enabled.ValueBool()
+	}
+	if !plan.Type.IsNull() && !plan.Type.IsUnknown() {
+		dto.Type = plan.Type.ValueString()
+	}
+	if !plan.Value.IsNull() && !plan.Value.IsUnknown() {
+		val := plan.Value.ValueString()
+		switch dto.Type {
+		case "A_RECORD":
+			dto.IPv4Address = val
+		case "AAAA_RECORD":
+			dto.IPv6Address = val
+		case "CNAME_RECORD":
+			dto.TargetDomain = val
+		case "TXT_RECORD":
+			dto.Text = val
+		case "FORWARD_DOMAIN":
+			dto.IPAddress = val
+		}
+	}
+	if !plan.TTL.IsNull() && !plan.TTL.IsUnknown() {
+		dto.TTLSeconds = int(plan.TTL.ValueInt64())
+	}
+	return dto
 }

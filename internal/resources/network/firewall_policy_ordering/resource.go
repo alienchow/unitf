@@ -76,11 +76,13 @@ func (r *FirewallPolicyOrderingResource) Schema(ctx context.Context, req resourc
 			"before_system_defined": schema.ListAttribute{
 				ElementType: types.StringType,
 				Optional:    true,
+				Computed:    true,
 				Description: "List of policy IDs to apply before system-defined rules.",
 			},
 			"after_system_defined": schema.ListAttribute{
 				ElementType: types.StringType,
 				Optional:    true,
+				Computed:    true,
 				Description: "List of policy IDs to apply after system-defined rules.",
 			},
 		},
@@ -91,12 +93,12 @@ func (r *FirewallPolicyOrderingResource) Configure(ctx context.Context, req reso
 	if req.ProviderData == nil {
 		return
 	}
-	c, ok := req.ProviderData.(client.NetworkClient)
+	c, ok := req.ProviderData.(*client.Client)
 	if !ok {
-		resp.Diagnostics.AddError("Unexpected Resource Configure Type", "Expected client.NetworkClient")
+		resp.Diagnostics.AddError("Unexpected Resource Configure Type", "Expected *client.Client")
 		return
 	}
-	r.client = c
+	r.client = c.Network
 }
 
 func (r *FirewallPolicyOrderingResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
@@ -106,22 +108,16 @@ func (r *FirewallPolicyOrderingResource) Create(ctx context.Context, req resourc
 		return
 	}
 
-	dto := &client.FirewallPolicyOrderingDto{}
-	for _, id := range plan.BeforeSystemDefined {
-		dto.BeforeSystemDefined = append(dto.BeforeSystemDefined, id.ValueString())
-	}
-	for _, id := range plan.AfterSystemDefined {
-		dto.AfterSystemDefined = append(dto.AfterSystemDefined, id.ValueString())
-	}
+	dto := r.modelToDto(plan)
 
-	_, err := r.client.UpdateFirewallPolicyOrdering(ctx, plan.SiteID.ValueString(), plan.FromZoneID.ValueString(), plan.ToZoneID.ValueString(), dto)
+	res, err := r.client.UpdateFirewallPolicyOrdering(ctx, plan.SiteID.ValueString(), plan.FromZoneID.ValueString(), plan.ToZoneID.ValueString(), dto)
 	if err != nil {
 		resp.Diagnostics.AddError("Error Creating/Updating UniFi Firewall Policy Ordering", err.Error())
 		return
 	}
 
-	plan.ID = types.StringValue(fmt.Sprintf("%s/%s/%s", plan.SiteID.ValueString(), plan.FromZoneID.ValueString(), plan.ToZoneID.ValueString()))
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	state := r.dtoToModel(plan.SiteID.ValueString(), plan.FromZoneID.ValueString(), plan.ToZoneID.ValueString(), res)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
 func (r *FirewallPolicyOrderingResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
@@ -141,17 +137,8 @@ func (r *FirewallPolicyOrderingResource) Read(ctx context.Context, req resource.
 		return
 	}
 
-	state.BeforeSystemDefined = make([]types.String, len(res.BeforeSystemDefined))
-	for i, id := range res.BeforeSystemDefined {
-		state.BeforeSystemDefined[i] = types.StringValue(id)
-	}
-
-	state.AfterSystemDefined = make([]types.String, len(res.AfterSystemDefined))
-	for i, id := range res.AfterSystemDefined {
-		state.AfterSystemDefined[i] = types.StringValue(id)
-	}
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	newState := r.dtoToModel(state.SiteID.ValueString(), state.FromZoneID.ValueString(), state.ToZoneID.ValueString(), res)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &newState)...)
 }
 
 func (r *FirewallPolicyOrderingResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
@@ -161,21 +148,16 @@ func (r *FirewallPolicyOrderingResource) Update(ctx context.Context, req resourc
 		return
 	}
 
-	dto := &client.FirewallPolicyOrderingDto{}
-	for _, id := range plan.BeforeSystemDefined {
-		dto.BeforeSystemDefined = append(dto.BeforeSystemDefined, id.ValueString())
-	}
-	for _, id := range plan.AfterSystemDefined {
-		dto.AfterSystemDefined = append(dto.AfterSystemDefined, id.ValueString())
-	}
+	dto := r.modelToDto(plan)
 
-	_, err := r.client.UpdateFirewallPolicyOrdering(ctx, plan.SiteID.ValueString(), plan.FromZoneID.ValueString(), plan.ToZoneID.ValueString(), dto)
+	res, err := r.client.UpdateFirewallPolicyOrdering(ctx, plan.SiteID.ValueString(), plan.FromZoneID.ValueString(), plan.ToZoneID.ValueString(), dto)
 	if err != nil {
 		resp.Diagnostics.AddError("Error Updating UniFi Firewall Policy Ordering", err.Error())
 		return
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	state := r.dtoToModel(plan.SiteID.ValueString(), plan.FromZoneID.ValueString(), plan.ToZoneID.ValueString(), res)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
 func (r *FirewallPolicyOrderingResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
@@ -208,4 +190,40 @@ func (r *FirewallPolicyOrderingResource) ImportState(ctx context.Context, req re
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("from_zone_id"), parts[1])...)
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("to_zone_id"), parts[2])...)
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), req.ID)...)
+}
+
+func (r *FirewallPolicyOrderingResource) dtoToModel(siteID, fromZoneID, toZoneID string, res *client.FirewallPolicyOrderingDto) FirewallPolicyOrderingResourceModel {
+	state := FirewallPolicyOrderingResourceModel{
+		ID:         types.StringValue(fmt.Sprintf("%s/%s/%s", siteID, fromZoneID, toZoneID)),
+		SiteID:     types.StringValue(siteID),
+		FromZoneID: types.StringValue(fromZoneID),
+		ToZoneID:   types.StringValue(toZoneID),
+	}
+
+	state.BeforeSystemDefined = make([]types.String, len(res.BeforeSystemDefined))
+	for i, id := range res.BeforeSystemDefined {
+		state.BeforeSystemDefined[i] = types.StringValue(id)
+	}
+
+	state.AfterSystemDefined = make([]types.String, len(res.AfterSystemDefined))
+	for i, id := range res.AfterSystemDefined {
+		state.AfterSystemDefined[i] = types.StringValue(id)
+	}
+
+	return state
+}
+
+func (r *FirewallPolicyOrderingResource) modelToDto(model FirewallPolicyOrderingResourceModel) *client.FirewallPolicyOrderingDto {
+	dto := &client.FirewallPolicyOrderingDto{}
+	for _, id := range model.BeforeSystemDefined {
+		if !id.IsNull() && !id.IsUnknown() {
+			dto.BeforeSystemDefined = append(dto.BeforeSystemDefined, id.ValueString())
+		}
+	}
+	for _, id := range model.AfterSystemDefined {
+		if !id.IsNull() && !id.IsUnknown() {
+			dto.AfterSystemDefined = append(dto.AfterSystemDefined, id.ValueString())
+		}
+	}
+	return dto
 }

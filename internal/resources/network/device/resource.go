@@ -68,6 +68,7 @@ func (r *DeviceResource) Schema(ctx context.Context, req resource.SchemaRequest,
 			},
 			"name": schema.StringAttribute{
 				Optional:    true,
+				Computed:    true,
 				Description: "Name of the device.",
 			},
 			"adopt": schema.BoolAttribute{
@@ -84,12 +85,12 @@ func (r *DeviceResource) Configure(ctx context.Context, req resource.ConfigureRe
 	if req.ProviderData == nil {
 		return
 	}
-	c, ok := req.ProviderData.(client.NetworkClient)
+	c, ok := req.ProviderData.(*client.Client)
 	if !ok {
-		resp.Diagnostics.AddError("Unexpected Resource Configure Type", "Expected client.NetworkClient")
+		resp.Diagnostics.AddError("Unexpected Resource Configure Type", "Expected *client.Client")
 		return
 	}
-	r.client = c
+	r.client = c.Network
 }
 
 func (r *DeviceResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
@@ -116,20 +117,20 @@ func (r *DeviceResource) Create(ctx context.Context, req resource.CreateRequest,
 		return
 	}
 
-	plan.ID = types.StringValue(res.ID)
-
-	if !plan.Name.IsNull() {
-		dto := &client.DeviceDto{
-			Name: plan.Name.ValueString(),
-		}
-		_, err := r.client.UpdateDevice(ctx, siteID, res.ID, dto)
+	if !plan.Name.IsNull() && !plan.Name.IsUnknown() {
+		dto := r.modelToDto(plan)
+		updatedRes, err := r.client.UpdateDevice(ctx, siteID, res.ID, dto)
 		if err != nil {
 			resp.Diagnostics.AddError("Error Updating UniFi Device Name", err.Error())
 			return
 		}
+		if updatedRes != nil {
+			res = updatedRes
+		}
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	state := r.dtoToModel(siteID, mac, res)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
 func (r *DeviceResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
@@ -141,6 +142,10 @@ func (r *DeviceResource) Read(ctx context.Context, req resource.ReadRequest, res
 
 	res, err := r.client.GetDevice(ctx, state.SiteID.ValueString(), state.Mac.ValueString())
 	if err != nil {
+		if client.IsNotFound(err) {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		resp.Diagnostics.AddError("Error Reading UniFi Device", err.Error())
 		return
 	}
@@ -149,10 +154,8 @@ func (r *DeviceResource) Read(ctx context.Context, req resource.ReadRequest, res
 		return
 	}
 
-	state.Name = types.StringValue(res.Name)
-	state.Adopt = types.BoolValue(res.Adopted)
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	newState := r.dtoToModel(state.SiteID.ValueString(), state.Mac.ValueString(), res)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &newState)...)
 }
 
 func (r *DeviceResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
@@ -163,19 +166,17 @@ func (r *DeviceResource) Update(ctx context.Context, req resource.UpdateRequest,
 	}
 
 	siteID := plan.SiteID.ValueString()
+	mac := plan.Mac.ValueString()
 
-	if !plan.Name.IsNull() {
-		dto := &client.DeviceDto{
-			Name: plan.Name.ValueString(),
-		}
-		_, err := r.client.UpdateDevice(ctx, siteID, plan.ID.ValueString(), dto)
-		if err != nil {
-			resp.Diagnostics.AddError("Error Updating UniFi Device Name", err.Error())
-			return
-		}
+	dto := r.modelToDto(plan)
+	res, err := r.client.UpdateDevice(ctx, siteID, plan.ID.ValueString(), dto)
+	if err != nil {
+		resp.Diagnostics.AddError("Error Updating UniFi Device", err.Error())
+		return
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	state := r.dtoToModel(siteID, mac, res)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
 func (r *DeviceResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
@@ -200,4 +201,23 @@ func (r *DeviceResource) ImportState(ctx context.Context, req resource.ImportSta
 	}
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("site_id"), parts[0])...)
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("mac"), parts[1])...)
+}
+
+func (r *DeviceResource) dtoToModel(siteID string, mac string, dto *client.DeviceDto) DeviceResourceModel {
+	state := DeviceResourceModel{
+		ID:     types.StringValue(dto.ID),
+		SiteID: types.StringValue(siteID),
+		Mac:    types.StringValue(mac),
+		Name:   types.StringValue(dto.Name),
+		Adopt:  types.BoolValue(dto.Adopted),
+	}
+	return state
+}
+
+func (r *DeviceResource) modelToDto(plan DeviceResourceModel) *client.DeviceDto {
+	dto := &client.DeviceDto{}
+	if !plan.Name.IsNull() && !plan.Name.IsUnknown() {
+		dto.Name = plan.Name.ValueString()
+	}
+	return dto
 }

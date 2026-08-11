@@ -31,22 +31,22 @@ func mapToEndpointDto(m *FirewallEndpointModel) *client.FirewallEndpointDto {
 		return nil
 	}
 	dto := &client.FirewallEndpointDto{}
-	if !m.ZoneID.IsNull() {
+	if !m.ZoneID.IsNull() && !m.ZoneID.IsUnknown() {
 		dto.ZoneID = m.ZoneID.ValueString()
 	}
-	if !m.NetworkID.IsNull() {
+	if !m.NetworkID.IsNull() && !m.NetworkID.IsUnknown() {
 		dto.NetworkID = m.NetworkID.ValueString()
 	}
-	if !m.Address.IsNull() {
+	if !m.Address.IsNull() && !m.Address.IsUnknown() {
 		dto.Address = m.Address.ValueString()
 	}
-	if !m.Port.IsNull() {
+	if !m.Port.IsNull() && !m.Port.IsUnknown() {
 		dto.Port = m.Port.ValueString()
 	}
-	if !m.MacAddress.IsNull() {
+	if !m.MacAddress.IsNull() && !m.MacAddress.IsUnknown() {
 		dto.MACAddress = m.MacAddress.ValueString()
 	}
-	if !m.MatchListID.IsNull() {
+	if !m.MatchListID.IsNull() && !m.MatchListID.IsUnknown() {
 		dto.MatchListID = m.MatchListID.ValueString()
 	}
 	return dto
@@ -154,6 +154,7 @@ func (r *AclRuleResource) Schema(ctx context.Context, req resource.SchemaRequest
 			"protocols": schema.ListAttribute{
 				ElementType: types.StringType,
 				Optional:    true,
+				Computed:    true,
 			},
 			"logging": schema.BoolAttribute{
 				Optional:    true,
@@ -163,26 +164,28 @@ func (r *AclRuleResource) Schema(ctx context.Context, req resource.SchemaRequest
 			},
 			"source": schema.SingleNestedAttribute{
 				Optional:    true,
+				Computed:    true,
 				Description: "Source endpoint matching.",
 				Attributes: map[string]schema.Attribute{
-					"zone_id":       schema.StringAttribute{Optional: true},
-					"network_id":    schema.StringAttribute{Optional: true},
-					"address":       schema.StringAttribute{Optional: true},
-					"port":          schema.StringAttribute{Optional: true},
-					"mac_address":   schema.StringAttribute{Optional: true},
-					"match_list_id": schema.StringAttribute{Optional: true},
+					"zone_id":       schema.StringAttribute{Optional: true, Computed: true},
+					"network_id":    schema.StringAttribute{Optional: true, Computed: true},
+					"address":       schema.StringAttribute{Optional: true, Computed: true},
+					"port":          schema.StringAttribute{Optional: true, Computed: true},
+					"mac_address":   schema.StringAttribute{Optional: true, Computed: true},
+					"match_list_id": schema.StringAttribute{Optional: true, Computed: true},
 				},
 			},
 			"destination": schema.SingleNestedAttribute{
 				Optional:    true,
+				Computed:    true,
 				Description: "Destination endpoint matching.",
 				Attributes: map[string]schema.Attribute{
-					"zone_id":       schema.StringAttribute{Optional: true},
-					"network_id":    schema.StringAttribute{Optional: true},
-					"address":       schema.StringAttribute{Optional: true},
-					"port":          schema.StringAttribute{Optional: true},
-					"mac_address":   schema.StringAttribute{Optional: true},
-					"match_list_id": schema.StringAttribute{Optional: true},
+					"zone_id":       schema.StringAttribute{Optional: true, Computed: true},
+					"network_id":    schema.StringAttribute{Optional: true, Computed: true},
+					"address":       schema.StringAttribute{Optional: true, Computed: true},
+					"port":          schema.StringAttribute{Optional: true, Computed: true},
+					"mac_address":   schema.StringAttribute{Optional: true, Computed: true},
+					"match_list_id": schema.StringAttribute{Optional: true, Computed: true},
 				},
 			},
 		},
@@ -193,12 +196,12 @@ func (r *AclRuleResource) Configure(ctx context.Context, req resource.ConfigureR
 	if req.ProviderData == nil {
 		return
 	}
-	c, ok := req.ProviderData.(client.NetworkClient)
+	c, ok := req.ProviderData.(*client.Client)
 	if !ok {
-		resp.Diagnostics.AddError("Unexpected Resource Configure Type", "Expected client.NetworkClient")
+		resp.Diagnostics.AddError("Unexpected Resource Configure Type", "Expected *client.Client")
 		return
 	}
-	r.client = c
+	r.client = c.Network
 }
 
 func (r *AclRuleResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
@@ -208,20 +211,7 @@ func (r *AclRuleResource) Create(ctx context.Context, req resource.CreateRequest
 		return
 	}
 
-	dto := &client.AclRuleDto{
-		Name:      plan.Name.ValueString(),
-		Enabled:   plan.Enabled.ValueBool(),
-		Action:    plan.Action.ValueString(),
-		IPVersion: plan.IPVersion.ValueString(),
-		Logging:   plan.Logging.ValueBool(),
-	}
-
-	for _, p := range plan.Protocols {
-		dto.Protocols = append(dto.Protocols, p.ValueString())
-	}
-
-	dto.Source = mapToEndpointDto(plan.Source)
-	dto.Destination = mapToEndpointDto(plan.Destination)
+	dto := r.modelToDto(plan)
 
 	res, err := r.client.CreateAclRule(ctx, plan.SiteID.ValueString(), dto)
 	if err != nil {
@@ -229,8 +219,8 @@ func (r *AclRuleResource) Create(ctx context.Context, req resource.CreateRequest
 		return
 	}
 
-	plan.ID = types.StringValue(res.ID)
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	state := r.dtoToModel(plan.SiteID.ValueString(), res)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
 func (r *AclRuleResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
@@ -250,21 +240,8 @@ func (r *AclRuleResource) Read(ctx context.Context, req resource.ReadRequest, re
 		return
 	}
 
-	state.Name = types.StringValue(res.Name)
-	state.Enabled = types.BoolValue(res.Enabled)
-	state.Action = types.StringValue(res.Action)
-	state.IPVersion = types.StringValue(res.IPVersion)
-	state.Logging = types.BoolValue(res.Logging)
-
-	state.Protocols = make([]types.String, len(res.Protocols))
-	for i, p := range res.Protocols {
-		state.Protocols[i] = types.StringValue(p)
-	}
-
-	state.Source = mapToEndpointModel(res.Source)
-	state.Destination = mapToEndpointModel(res.Destination)
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	newState := r.dtoToModel(state.SiteID.ValueString(), res)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &newState)...)
 }
 
 func (r *AclRuleResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
@@ -274,20 +251,7 @@ func (r *AclRuleResource) Update(ctx context.Context, req resource.UpdateRequest
 		return
 	}
 
-	dto := &client.AclRuleDto{
-		Name:      plan.Name.ValueString(),
-		Enabled:   plan.Enabled.ValueBool(),
-		Action:    plan.Action.ValueString(),
-		IPVersion: plan.IPVersion.ValueString(),
-		Logging:   plan.Logging.ValueBool(),
-	}
-
-	for _, p := range plan.Protocols {
-		dto.Protocols = append(dto.Protocols, p.ValueString())
-	}
-
-	dto.Source = mapToEndpointDto(plan.Source)
-	dto.Destination = mapToEndpointDto(plan.Destination)
+	dto := r.modelToDto(plan)
 
 	res, err := r.client.UpdateAclRule(ctx, plan.SiteID.ValueString(), plan.ID.ValueString(), dto)
 	if err != nil {
@@ -295,8 +259,8 @@ func (r *AclRuleResource) Update(ctx context.Context, req resource.UpdateRequest
 		return
 	}
 
-	plan.ID = types.StringValue(res.ID)
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	state := r.dtoToModel(plan.SiteID.ValueString(), res)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
 func (r *AclRuleResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
@@ -321,4 +285,59 @@ func (r *AclRuleResource) ImportState(ctx context.Context, req resource.ImportSt
 	}
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("site_id"), parts[0])...)
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), parts[1])...)
+}
+
+func (r *AclRuleResource) dtoToModel(siteID string, dto *client.AclRuleDto) AclRuleResourceModel {
+	state := AclRuleResourceModel{
+		ID:        types.StringValue(dto.ID),
+		SiteID:    types.StringValue(siteID),
+		Name:      types.StringValue(dto.Name),
+		Enabled:   types.BoolValue(dto.Enabled),
+		Action:    types.StringValue(dto.Action),
+		IPVersion: types.StringValue(dto.IPVersion),
+		Logging:   types.BoolValue(dto.Logging),
+	}
+
+	if len(dto.Protocols) > 0 {
+		state.Protocols = make([]types.String, len(dto.Protocols))
+		for i, p := range dto.Protocols {
+			state.Protocols[i] = types.StringValue(p)
+		}
+	}
+
+	state.Source = mapToEndpointModel(dto.Source)
+	state.Destination = mapToEndpointModel(dto.Destination)
+
+	return state
+}
+
+func (r *AclRuleResource) modelToDto(plan AclRuleResourceModel) *client.AclRuleDto {
+	dto := &client.AclRuleDto{}
+
+	if !plan.Name.IsNull() && !plan.Name.IsUnknown() {
+		dto.Name = plan.Name.ValueString()
+	}
+	if !plan.Enabled.IsNull() && !plan.Enabled.IsUnknown() {
+		dto.Enabled = plan.Enabled.ValueBool()
+	}
+	if !plan.Action.IsNull() && !plan.Action.IsUnknown() {
+		dto.Action = plan.Action.ValueString()
+	}
+	if !plan.IPVersion.IsNull() && !plan.IPVersion.IsUnknown() {
+		dto.IPVersion = plan.IPVersion.ValueString()
+	}
+	if !plan.Logging.IsNull() && !plan.Logging.IsUnknown() {
+		dto.Logging = plan.Logging.ValueBool()
+	}
+
+	for _, p := range plan.Protocols {
+		if !p.IsNull() && !p.IsUnknown() {
+			dto.Protocols = append(dto.Protocols, p.ValueString())
+		}
+	}
+
+	dto.Source = mapToEndpointDto(plan.Source)
+	dto.Destination = mapToEndpointDto(plan.Destination)
+
+	return dto
 }

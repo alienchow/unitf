@@ -48,6 +48,7 @@ func (r *ProtectRelayResource) Schema(ctx context.Context, req resource.SchemaRe
 			},
 			"name": schema.StringAttribute{
 				Optional:    true,
+				Computed:    true,
 				Description: "Name of the relay.",
 			},
 		},
@@ -58,12 +59,12 @@ func (r *ProtectRelayResource) Configure(ctx context.Context, req resource.Confi
 	if req.ProviderData == nil {
 		return
 	}
-	c, ok := req.ProviderData.(client.ProtectClient)
+	c, ok := req.ProviderData.(*client.Client)
 	if !ok {
-		resp.Diagnostics.AddError("Unexpected Resource Configure Type", "Expected client.ProtectClient")
+		resp.Diagnostics.AddError("Unexpected Resource Configure Type", "Expected *client.Client")
 		return
 	}
-	r.client = c
+	r.client = c.Protect
 }
 
 func (r *ProtectRelayResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
@@ -73,17 +74,16 @@ func (r *ProtectRelayResource) Create(ctx context.Context, req resource.CreateRe
 		return
 	}
 
-	dto := &client.RelayDto{
-		Name: plan.Name.ValueString(),
-	}
+	dto := r.modelToDto(plan)
 
-	_, err := r.client.UpdateRelay(ctx, plan.ID.ValueString(), dto)
+	res, err := r.client.UpdateRelay(ctx, plan.ID.ValueString(), dto)
 	if err != nil {
 		resp.Diagnostics.AddError("Error Configuring UniFi Protect Relay", err.Error())
 		return
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	state := r.dtoToModel(plan.ID.ValueString(), res)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
 func (r *ProtectRelayResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
@@ -103,8 +103,8 @@ func (r *ProtectRelayResource) Read(ctx context.Context, req resource.ReadReques
 		return
 	}
 
-	state.Name = types.StringValue(res.Name)
-	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	newState := r.dtoToModel(state.ID.ValueString(), res)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &newState)...)
 }
 
 func (r *ProtectRelayResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
@@ -114,17 +114,16 @@ func (r *ProtectRelayResource) Update(ctx context.Context, req resource.UpdateRe
 		return
 	}
 
-	dto := &client.RelayDto{
-		Name: plan.Name.ValueString(),
-	}
+	dto := r.modelToDto(plan)
 
-	_, err := r.client.UpdateRelay(ctx, plan.ID.ValueString(), dto)
+	res, err := r.client.UpdateRelay(ctx, plan.ID.ValueString(), dto)
 	if err != nil {
 		resp.Diagnostics.AddError("Error Updating UniFi Protect Relay", err.Error())
 		return
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	state := r.dtoToModel(plan.ID.ValueString(), res)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
 func (r *ProtectRelayResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
@@ -133,4 +132,19 @@ func (r *ProtectRelayResource) Delete(ctx context.Context, req resource.DeleteRe
 
 func (r *ProtectRelayResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+}
+
+func (r *ProtectRelayResource) dtoToModel(id string, dto *client.RelayDto) ProtectRelayResourceModel {
+	return ProtectRelayResourceModel{
+		ID:   types.StringValue(id),
+		Name: types.StringValue(dto.Name),
+	}
+}
+
+func (r *ProtectRelayResource) modelToDto(model ProtectRelayResourceModel) *client.RelayDto {
+	dto := &client.RelayDto{}
+	if !model.Name.IsNull() && !model.Name.IsUnknown() {
+		dto.Name = model.Name.ValueString()
+	}
+	return dto
 }

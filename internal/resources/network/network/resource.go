@@ -114,45 +114,54 @@ func (r *NetworkResource) Schema(ctx context.Context, req resource.SchemaRequest
 			},
 			"gateway_managed": schema.SingleNestedAttribute{
 				Optional:    true,
+				Computed:    true,
 				Description: "Configuration for GATEWAY_MANAGED networks.",
 				Attributes: map[string]schema.Attribute{
 					"vlan_id": schema.Int64Attribute{
 						Optional:    true,
+						Computed:    true,
 						Description: "VLAN ID (1-4094).",
 					},
 					"purpose": schema.StringAttribute{
 						Optional:    true,
+						Computed:    true,
 						Description: "Network purpose: CORPORATE, GUEST, etc.",
 					},
 					"multicast_dns": schema.BoolAttribute{
 						Optional:    true,
+						Computed:    true,
 						Description: "Enable mDNS forwarding.",
 					},
 					"dhcp_guarding": schema.SingleNestedAttribute{
 						Optional: true,
+						Computed: true,
 						Attributes: map[string]schema.Attribute{
 							"enabled": schema.BoolAttribute{Required: true},
 							"server_ips": schema.ListAttribute{
 								ElementType: types.StringType,
 								Optional:    true,
+								Computed:    true,
 							},
 						},
 					},
 					"ipv4": schema.SingleNestedAttribute{
 						Optional: true,
+						Computed: true,
 						Attributes: map[string]schema.Attribute{
 							"enabled":     schema.BoolAttribute{Required: true},
 							"subnet_mask": schema.StringAttribute{Required: true},
 							"dhcp_server": schema.SingleNestedAttribute{
 								Optional: true,
+								Computed: true,
 								Attributes: map[string]schema.Attribute{
-									"range_start":     schema.StringAttribute{Optional: true},
-									"range_stop":      schema.StringAttribute{Optional: true},
-									"lease_time_sec":  schema.Int64Attribute{Optional: true},
-									"gateway_address": schema.StringAttribute{Optional: true},
+									"range_start":     schema.StringAttribute{Optional: true, Computed: true},
+									"range_stop":      schema.StringAttribute{Optional: true, Computed: true},
+									"lease_time_sec":  schema.Int64Attribute{Optional: true, Computed: true},
+									"gateway_address": schema.StringAttribute{Optional: true, Computed: true},
 									"dns_servers": schema.ListAttribute{
 										ElementType: types.StringType,
 										Optional:    true,
+										Computed:    true,
 									},
 								},
 							},
@@ -162,16 +171,19 @@ func (r *NetworkResource) Schema(ctx context.Context, req resource.SchemaRequest
 			},
 			"switch_managed": schema.SingleNestedAttribute{
 				Optional:    true,
+				Computed:    true,
 				Description: "Configuration for SWITCH_MANAGED networks.",
 				Attributes: map[string]schema.Attribute{
 					"vlan_id": schema.Int64Attribute{Required: true},
 					"dhcp_guarding": schema.SingleNestedAttribute{
 						Optional: true,
+						Computed: true,
 						Attributes: map[string]schema.Attribute{
 							"enabled": schema.BoolAttribute{Required: true},
 							"server_ips": schema.ListAttribute{
 								ElementType: types.StringType,
 								Optional:    true,
+								Computed:    true,
 							},
 						},
 					},
@@ -179,9 +191,10 @@ func (r *NetworkResource) Schema(ctx context.Context, req resource.SchemaRequest
 			},
 			"unmanaged": schema.SingleNestedAttribute{
 				Optional:    true,
+				Computed:    true,
 				Description: "Configuration for UNMANAGED networks.",
 				Attributes: map[string]schema.Attribute{
-					"vlan_id": schema.Int64Attribute{Optional: true},
+					"vlan_id": schema.Int64Attribute{Optional: true, Computed: true},
 				},
 			},
 		},
@@ -192,12 +205,12 @@ func (r *NetworkResource) Configure(ctx context.Context, req resource.ConfigureR
 	if req.ProviderData == nil {
 		return
 	}
-	c, ok := req.ProviderData.(client.NetworkClient)
+	c, ok := req.ProviderData.(*client.Client)
 	if !ok {
-		resp.Diagnostics.AddError("Unexpected Resource Configure Type", "Expected client.NetworkClient")
+		resp.Diagnostics.AddError("Unexpected Resource Configure Type", "Expected *client.Client")
 		return
 	}
-	r.client = c
+	r.client = c.Network
 }
 
 func (r *NetworkResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
@@ -207,7 +220,7 @@ func (r *NetworkResource) Create(ctx context.Context, req resource.CreateRequest
 		return
 	}
 
-	dto := buildNetworkDto(plan)
+	dto := r.modelToDto(plan)
 
 	res, err := r.client.CreateNetwork(ctx, plan.SiteID.ValueString(), dto)
 	if err != nil {
@@ -215,8 +228,8 @@ func (r *NetworkResource) Create(ctx context.Context, req resource.CreateRequest
 		return
 	}
 
-	plan.ID = types.StringValue(res.ID)
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	state := r.dtoToModel(plan.SiteID.ValueString(), res.ID, res)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
 func (r *NetworkResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
@@ -236,9 +249,8 @@ func (r *NetworkResource) Read(ctx context.Context, req resource.ReadRequest, re
 		return
 	}
 
-	populateStateFromDto(&state, res)
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	newState := r.dtoToModel(state.SiteID.ValueString(), state.ID.ValueString(), res)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &newState)...)
 }
 
 func (r *NetworkResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
@@ -248,7 +260,7 @@ func (r *NetworkResource) Update(ctx context.Context, req resource.UpdateRequest
 		return
 	}
 
-	dto := buildNetworkDto(plan)
+	dto := r.modelToDto(plan)
 
 	res, err := r.client.UpdateNetwork(ctx, plan.SiteID.ValueString(), plan.ID.ValueString(), dto)
 	if err != nil {
@@ -256,8 +268,8 @@ func (r *NetworkResource) Update(ctx context.Context, req resource.UpdateRequest
 		return
 	}
 
-	plan.ID = types.StringValue(res.ID)
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	state := r.dtoToModel(plan.SiteID.ValueString(), res.ID, res)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
 func (r *NetworkResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
@@ -284,84 +296,99 @@ func (r *NetworkResource) ImportState(ctx context.Context, req resource.ImportSt
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), parts[1])...)
 }
 
-func buildNetworkDto(plan NetworkResourceModel) *client.NetworkDto {
-	dto := &client.NetworkDto{
-		Name: plan.Name.ValueString(),
-		Type: plan.Type.ValueString(),
+func (r *NetworkResource) modelToDto(plan NetworkResourceModel) *client.NetworkDto {
+	dto := &client.NetworkDto{}
+
+	if !plan.Name.IsNull() && !plan.Name.IsUnknown() {
+		dto.Name = plan.Name.ValueString()
+	}
+	if !plan.Type.IsNull() && !plan.Type.IsUnknown() {
+		dto.Type = plan.Type.ValueString()
 	}
 
-	switch plan.Type.ValueString() {
-	case "GATEWAY_MANAGED":
-		if plan.GatewayManaged != nil {
-			if !plan.GatewayManaged.VlanID.IsNull() {
-				vlan := int(plan.GatewayManaged.VlanID.ValueInt64())
-				dto.VlanID = &vlan
-			}
-			if !plan.GatewayManaged.Purpose.IsNull() {
-				dto.Purpose = plan.GatewayManaged.Purpose.ValueString()
-			}
-			if !plan.GatewayManaged.MulticastDNS.IsNull() {
-				mdns := plan.GatewayManaged.MulticastDNS.ValueBool()
-				dto.MulticastDNS = &mdns
-			}
-			if plan.GatewayManaged.DHCPGuarding != nil {
-				dto.DHCPGuarding = &client.NetworkDHCPGuarding{
-					Enabled: plan.GatewayManaged.DHCPGuarding.Enabled.ValueBool(),
+	if !plan.Type.IsNull() && !plan.Type.IsUnknown() {
+		switch plan.Type.ValueString() {
+		case "GATEWAY_MANAGED":
+			if plan.GatewayManaged != nil {
+				if !plan.GatewayManaged.VlanID.IsNull() && !plan.GatewayManaged.VlanID.IsUnknown() {
+					vlan := int(plan.GatewayManaged.VlanID.ValueInt64())
+					dto.VlanID = &vlan
 				}
-				for _, ip := range plan.GatewayManaged.DHCPGuarding.ServerIPs {
-					if !ip.IsNull() {
-						dto.DHCPGuarding.ServerIPs = append(dto.DHCPGuarding.ServerIPs, ip.ValueString())
+				if !plan.GatewayManaged.Purpose.IsNull() && !plan.GatewayManaged.Purpose.IsUnknown() {
+					dto.Purpose = plan.GatewayManaged.Purpose.ValueString()
+				}
+				if !plan.GatewayManaged.MulticastDNS.IsNull() && !plan.GatewayManaged.MulticastDNS.IsUnknown() {
+					mdns := plan.GatewayManaged.MulticastDNS.ValueBool()
+					dto.MulticastDNS = &mdns
+				}
+				if plan.GatewayManaged.DHCPGuarding != nil {
+					dto.DHCPGuarding = &client.NetworkDHCPGuarding{}
+					if !plan.GatewayManaged.DHCPGuarding.Enabled.IsNull() && !plan.GatewayManaged.DHCPGuarding.Enabled.IsUnknown() {
+						dto.DHCPGuarding.Enabled = plan.GatewayManaged.DHCPGuarding.Enabled.ValueBool()
+					}
+					for _, ip := range plan.GatewayManaged.DHCPGuarding.ServerIPs {
+						if !ip.IsNull() && !ip.IsUnknown() {
+							dto.DHCPGuarding.ServerIPs = append(dto.DHCPGuarding.ServerIPs, ip.ValueString())
+						}
 					}
 				}
-			}
-			if plan.GatewayManaged.IPv4 != nil {
-				dto.IPv4 = &client.GatewayIPv4Config{
-					Enabled:    plan.GatewayManaged.IPv4.Enabled.ValueBool(),
-					SubnetMask: plan.GatewayManaged.IPv4.SubnetMask.ValueString(),
-				}
-				if plan.GatewayManaged.IPv4.DHCPServer != nil {
-					dto.IPv4.DHCP = &client.IPv4DHCPDto{
-						Mode:       "DHCP_SERVER",
-						RangeStart: plan.GatewayManaged.IPv4.DHCPServer.RangeStart.ValueString(),
-						RangeStop:  plan.GatewayManaged.IPv4.DHCPServer.RangeStop.ValueString(),
+				if plan.GatewayManaged.IPv4 != nil {
+					dto.IPv4 = &client.GatewayIPv4Config{}
+					if !plan.GatewayManaged.IPv4.Enabled.IsNull() && !plan.GatewayManaged.IPv4.Enabled.IsUnknown() {
+						dto.IPv4.Enabled = plan.GatewayManaged.IPv4.Enabled.ValueBool()
 					}
-					if !plan.GatewayManaged.IPv4.DHCPServer.LeaseTimeSec.IsNull() {
-						lease := plan.GatewayManaged.IPv4.DHCPServer.LeaseTimeSec.ValueInt64()
-						dto.IPv4.DHCP.LeaseTimeSec = &lease
+					if !plan.GatewayManaged.IPv4.SubnetMask.IsNull() && !plan.GatewayManaged.IPv4.SubnetMask.IsUnknown() {
+						dto.IPv4.SubnetMask = plan.GatewayManaged.IPv4.SubnetMask.ValueString()
 					}
-					if !plan.GatewayManaged.IPv4.DHCPServer.GatewayAddress.IsNull() {
-						dto.IPv4.DHCP.GatewayAddress = plan.GatewayManaged.IPv4.DHCPServer.GatewayAddress.ValueString()
-					}
-					for _, ip := range plan.GatewayManaged.IPv4.DHCPServer.DNSServers {
-						if !ip.IsNull() {
-							dto.IPv4.DHCP.DNSServers = append(dto.IPv4.DHCP.DNSServers, ip.ValueString())
+					if plan.GatewayManaged.IPv4.DHCPServer != nil {
+						dto.IPv4.DHCP = &client.IPv4DHCPDto{
+							Mode: "DHCP_SERVER",
+						}
+						if !plan.GatewayManaged.IPv4.DHCPServer.RangeStart.IsNull() && !plan.GatewayManaged.IPv4.DHCPServer.RangeStart.IsUnknown() {
+							dto.IPv4.DHCP.RangeStart = plan.GatewayManaged.IPv4.DHCPServer.RangeStart.ValueString()
+						}
+						if !plan.GatewayManaged.IPv4.DHCPServer.RangeStop.IsNull() && !plan.GatewayManaged.IPv4.DHCPServer.RangeStop.IsUnknown() {
+							dto.IPv4.DHCP.RangeStop = plan.GatewayManaged.IPv4.DHCPServer.RangeStop.ValueString()
+						}
+						if !plan.GatewayManaged.IPv4.DHCPServer.LeaseTimeSec.IsNull() && !plan.GatewayManaged.IPv4.DHCPServer.LeaseTimeSec.IsUnknown() {
+							lease := plan.GatewayManaged.IPv4.DHCPServer.LeaseTimeSec.ValueInt64()
+							dto.IPv4.DHCP.LeaseTimeSec = &lease
+						}
+						if !plan.GatewayManaged.IPv4.DHCPServer.GatewayAddress.IsNull() && !plan.GatewayManaged.IPv4.DHCPServer.GatewayAddress.IsUnknown() {
+							dto.IPv4.DHCP.GatewayAddress = plan.GatewayManaged.IPv4.DHCPServer.GatewayAddress.ValueString()
+						}
+						for _, ip := range plan.GatewayManaged.IPv4.DHCPServer.DNSServers {
+							if !ip.IsNull() && !ip.IsUnknown() {
+								dto.IPv4.DHCP.DNSServers = append(dto.IPv4.DHCP.DNSServers, ip.ValueString())
+							}
 						}
 					}
 				}
 			}
-		}
-	case "SWITCH_MANAGED":
-		if plan.SwitchManaged != nil {
-			if !plan.SwitchManaged.VlanID.IsNull() {
-				vlan := int(plan.SwitchManaged.VlanID.ValueInt64())
-				dto.VlanID = &vlan
-			}
-			if plan.SwitchManaged.DHCPGuarding != nil {
-				dto.DHCPGuarding = &client.NetworkDHCPGuarding{
-					Enabled: plan.SwitchManaged.DHCPGuarding.Enabled.ValueBool(),
+		case "SWITCH_MANAGED":
+			if plan.SwitchManaged != nil {
+				if !plan.SwitchManaged.VlanID.IsNull() && !plan.SwitchManaged.VlanID.IsUnknown() {
+					vlan := int(plan.SwitchManaged.VlanID.ValueInt64())
+					dto.VlanID = &vlan
 				}
-				for _, ip := range plan.SwitchManaged.DHCPGuarding.ServerIPs {
-					if !ip.IsNull() {
-						dto.DHCPGuarding.ServerIPs = append(dto.DHCPGuarding.ServerIPs, ip.ValueString())
+				if plan.SwitchManaged.DHCPGuarding != nil {
+					dto.DHCPGuarding = &client.NetworkDHCPGuarding{}
+					if !plan.SwitchManaged.DHCPGuarding.Enabled.IsNull() && !plan.SwitchManaged.DHCPGuarding.Enabled.IsUnknown() {
+						dto.DHCPGuarding.Enabled = plan.SwitchManaged.DHCPGuarding.Enabled.ValueBool()
+					}
+					for _, ip := range plan.SwitchManaged.DHCPGuarding.ServerIPs {
+						if !ip.IsNull() && !ip.IsUnknown() {
+							dto.DHCPGuarding.ServerIPs = append(dto.DHCPGuarding.ServerIPs, ip.ValueString())
+						}
 					}
 				}
 			}
-		}
-	case "UNMANAGED":
-		if plan.Unmanaged != nil {
-			if !plan.Unmanaged.VlanID.IsNull() {
-				vlan := int(plan.Unmanaged.VlanID.ValueInt64())
-				dto.VlanID = &vlan
+		case "UNMANAGED":
+			if plan.Unmanaged != nil {
+				if !plan.Unmanaged.VlanID.IsNull() && !plan.Unmanaged.VlanID.IsUnknown() {
+					vlan := int(plan.Unmanaged.VlanID.ValueInt64())
+					dto.VlanID = &vlan
+				}
 			}
 		}
 	}
@@ -369,8 +396,12 @@ func buildNetworkDto(plan NetworkResourceModel) *client.NetworkDto {
 	return dto
 }
 
-func populateStateFromDto(state *NetworkResourceModel, res *client.NetworkDto) {
-	state.Name = types.StringValue(res.Name)
+func (r *NetworkResource) dtoToModel(siteID string, id string, res *client.NetworkDto) NetworkResourceModel {
+	state := NetworkResourceModel{
+		ID:     types.StringValue(id),
+		SiteID: types.StringValue(siteID),
+		Name:   types.StringValue(res.Name),
+	}
 	networkType := res.Type
 	if networkType == "" {
 		networkType = "GATEWAY_MANAGED"
@@ -466,4 +497,5 @@ func populateStateFromDto(state *NetworkResourceModel, res *client.NetworkDto) {
 		}
 		state.Unmanaged = um
 	}
+	return state
 }

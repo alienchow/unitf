@@ -102,12 +102,12 @@ func (r *ProtectCameraResource) Configure(ctx context.Context, req resource.Conf
 	}
 
 	// Ensure that our provider also gives us a type that implements ProtectClient
-	c, ok := req.ProviderData.(client.ProtectClient)
+	c, ok := req.ProviderData.(*client.Client)
 	if !ok {
-		resp.Diagnostics.AddError("Unexpected Resource Configure Type", "Expected client.ProtectClient")
+		resp.Diagnostics.AddError("Unexpected Resource Configure Type", "Expected *client.Client")
 		return
 	}
-	r.client = c
+	r.client = c.Protect
 }
 
 func (r *ProtectCameraResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
@@ -120,13 +120,14 @@ func (r *ProtectCameraResource) Create(ctx context.Context, req resource.CreateR
 	}
 
 	dto := r.modelToDto(plan)
-	_, err := r.client.UpdateCamera(ctx, plan.ID.ValueString(), dto)
+	res, err := r.client.UpdateCamera(ctx, plan.ID.ValueString(), dto)
 	if err != nil {
 		resp.Diagnostics.AddError("Error Configuring UniFi Protect Camera", err.Error())
 		return
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	state := r.dtoToModel(plan.ID.ValueString(), res)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
 func (r *ProtectCameraResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
@@ -146,32 +147,8 @@ func (r *ProtectCameraResource) Read(ctx context.Context, req resource.ReadReque
 		return
 	}
 
-	state.Name = types.StringValue(res.Name)
-	state.VideoMode = types.StringValue(res.VideoMode)
-	state.RecordEverything = types.BoolValue(res.RecordEverything)
-
-	if res.OSDSettings != nil {
-		state.OSDSettings = &ProtectCameraOSDModel{
-			IsNameEnabled: types.BoolValue(res.OSDSettings.IsNameEnabled),
-			IsDateEnabled: types.BoolValue(res.OSDSettings.IsDateEnabled),
-		}
-	} else {
-		state.OSDSettings = nil
-	}
-
-	if res.SmartDetect != nil && len(res.SmartDetect.ObjectTypes) > 0 {
-		typesList := make([]types.String, len(res.SmartDetect.ObjectTypes))
-		for i, v := range res.SmartDetect.ObjectTypes {
-			typesList[i] = types.StringValue(v)
-		}
-		state.SmartDetect = &ProtectCameraSmartModel{
-			ObjectTypes: typesList,
-		}
-	} else {
-		state.SmartDetect = nil
-	}
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	newState := r.dtoToModel(state.ID.ValueString(), res)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &newState)...)
 }
 
 func (r *ProtectCameraResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
@@ -182,13 +159,14 @@ func (r *ProtectCameraResource) Update(ctx context.Context, req resource.UpdateR
 	}
 
 	dto := r.modelToDto(plan)
-	_, err := r.client.UpdateCamera(ctx, plan.ID.ValueString(), dto)
+	res, err := r.client.UpdateCamera(ctx, plan.ID.ValueString(), dto)
 	if err != nil {
 		resp.Diagnostics.AddError("Error Updating UniFi Protect Camera", err.Error())
 		return
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	state := r.dtoToModel(plan.ID.ValueString(), res)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
 func (r *ProtectCameraResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
@@ -199,30 +177,67 @@ func (r *ProtectCameraResource) ImportState(ctx context.Context, req resource.Im
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
+// dtoToModel maps an API response DTO to the Terraform state model.
+func (r *ProtectCameraResource) dtoToModel(id string, dto *client.CameraDto) ProtectCameraResourceModel {
+	state := ProtectCameraResourceModel{
+		ID:               types.StringValue(id),
+		Name:             types.StringValue(dto.Name),
+		VideoMode:        types.StringValue(dto.VideoMode),
+		RecordEverything: types.BoolValue(dto.RecordEverything),
+	}
+
+	if dto.OSDSettings != nil {
+		state.OSDSettings = &ProtectCameraOSDModel{
+			IsNameEnabled: types.BoolValue(dto.OSDSettings.IsNameEnabled),
+			IsDateEnabled: types.BoolValue(dto.OSDSettings.IsDateEnabled),
+		}
+	}
+
+	if dto.SmartDetect != nil && len(dto.SmartDetect.ObjectTypes) > 0 {
+		typesList := make([]types.String, len(dto.SmartDetect.ObjectTypes))
+		for i, v := range dto.SmartDetect.ObjectTypes {
+			typesList[i] = types.StringValue(v)
+		}
+		state.SmartDetect = &ProtectCameraSmartModel{
+			ObjectTypes: typesList,
+		}
+	}
+
+	return state
+}
+
+// modelToDto maps the Terraform plan model to an API request DTO.
+// Guards against both Null and Unknown values to prevent panics during plan phase.
 func (r *ProtectCameraResource) modelToDto(model ProtectCameraResourceModel) *client.CameraDto {
 	dto := &client.CameraDto{}
 
-	if !model.Name.IsNull() {
+	if !model.Name.IsNull() && !model.Name.IsUnknown() {
 		dto.Name = model.Name.ValueString()
 	}
-	if !model.VideoMode.IsNull() {
+	if !model.VideoMode.IsNull() && !model.VideoMode.IsUnknown() {
 		dto.VideoMode = model.VideoMode.ValueString()
 	}
-	if !model.RecordEverything.IsNull() {
+	if !model.RecordEverything.IsNull() && !model.RecordEverything.IsUnknown() {
 		dto.RecordEverything = model.RecordEverything.ValueBool()
 	}
 
 	if model.OSDSettings != nil {
-		dto.OSDSettings = &client.CameraOSDSettings{
-			IsNameEnabled: model.OSDSettings.IsNameEnabled.ValueBool(),
-			IsDateEnabled: model.OSDSettings.IsDateEnabled.ValueBool(),
+		osd := &client.CameraOSDSettings{}
+		if !model.OSDSettings.IsNameEnabled.IsNull() && !model.OSDSettings.IsNameEnabled.IsUnknown() {
+			osd.IsNameEnabled = model.OSDSettings.IsNameEnabled.ValueBool()
 		}
+		if !model.OSDSettings.IsDateEnabled.IsNull() && !model.OSDSettings.IsDateEnabled.IsUnknown() {
+			osd.IsDateEnabled = model.OSDSettings.IsDateEnabled.ValueBool()
+		}
+		dto.OSDSettings = osd
 	}
 
 	if model.SmartDetect != nil {
 		var objs []string
 		for _, o := range model.SmartDetect.ObjectTypes {
-			objs = append(objs, o.ValueString())
+			if !o.IsNull() && !o.IsUnknown() {
+				objs = append(objs, o.ValueString())
+			}
 		}
 		dto.SmartDetect = &client.CameraSmartDetect{
 			ObjectTypes: objs,

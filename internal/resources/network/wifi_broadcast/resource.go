@@ -83,6 +83,7 @@ func (r *WifiBroadcastResource) Schema(ctx context.Context, req resource.SchemaR
 			},
 			"passphrase": schema.StringAttribute{
 				Optional:    true,
+				Computed:    true,
 				Sensitive:   true,
 				Description: "WiFi passphrase. Required for WPA2/WPA3.",
 			},
@@ -92,6 +93,7 @@ func (r *WifiBroadcastResource) Schema(ctx context.Context, req resource.SchemaR
 			},
 			"mode": schema.StringAttribute{
 				Optional:    true,
+				Computed:    true,
 				Description: "Mode of the WiFi broadcast (e.g., STANDARD, IOT).",
 			},
 		},
@@ -102,12 +104,12 @@ func (r *WifiBroadcastResource) Configure(ctx context.Context, req resource.Conf
 	if req.ProviderData == nil {
 		return
 	}
-	c, ok := req.ProviderData.(client.NetworkClient)
+	c, ok := req.ProviderData.(*client.Client)
 	if !ok {
-		resp.Diagnostics.AddError("Unexpected Resource Configure Type", "Expected client.NetworkClient")
+		resp.Diagnostics.AddError("Unexpected Resource Configure Type", "Expected *client.Client")
 		return
 	}
-	r.client = c
+	r.client = c.Network
 }
 
 func (r *WifiBroadcastResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
@@ -117,19 +119,7 @@ func (r *WifiBroadcastResource) Create(ctx context.Context, req resource.CreateR
 		return
 	}
 
-	dto := &client.WifiBroadcastDto{
-		Name:      plan.Name.ValueString(),
-		Enabled:   plan.Enabled.ValueBool(),
-		SSID:      plan.SSID.ValueString(),
-		Security:  plan.Security.ValueString(),
-		NetworkID: plan.NetworkID.ValueString(),
-	}
-	if !plan.Passphrase.IsNull() {
-		dto.Passphrase = plan.Passphrase.ValueString()
-	}
-	if !plan.Mode.IsNull() {
-		dto.Mode = plan.Mode.ValueString()
-	}
+	dto := r.modelToDto(plan)
 
 	res, err := r.client.CreateWifiBroadcast(ctx, plan.SiteID.ValueString(), dto)
 	if err != nil {
@@ -137,8 +127,8 @@ func (r *WifiBroadcastResource) Create(ctx context.Context, req resource.CreateR
 		return
 	}
 
-	plan.ID = types.StringValue(res.ID)
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	state := r.dtoToModel(plan.SiteID.ValueString(), res.ID, res, plan)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
 func (r *WifiBroadcastResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
@@ -150,27 +140,16 @@ func (r *WifiBroadcastResource) Read(ctx context.Context, req resource.ReadReque
 
 	res, err := r.client.GetWifiBroadcast(ctx, state.SiteID.ValueString(), state.ID.ValueString())
 	if err != nil {
-		// Mock logic for not found check can go here if IsNotFound is defined
+		if client.IsNotFound(err) {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		resp.Diagnostics.AddError("Error Reading UniFi WiFi Broadcast", err.Error())
 		return
 	}
 
-	state.Name = types.StringValue(res.Name)
-	state.Enabled = types.BoolValue(res.Enabled)
-	state.SSID = types.StringValue(res.SSID)
-	state.Security = types.StringValue(res.Security)
-	state.NetworkID = types.StringValue(res.NetworkID)
-
-	if res.Mode != "" {
-		state.Mode = types.StringValue(res.Mode)
-	} else {
-		state.Mode = types.StringNull()
-	}
-
-	// We typically don't read back Passphrase because APIs often redact it.
-	// But if the API returns it, we can set it. Otherwise rely on state.
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	newState := r.dtoToModel(state.SiteID.ValueString(), state.ID.ValueString(), res, state)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &newState)...)
 }
 
 func (r *WifiBroadcastResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
@@ -180,19 +159,7 @@ func (r *WifiBroadcastResource) Update(ctx context.Context, req resource.UpdateR
 		return
 	}
 
-	dto := &client.WifiBroadcastDto{
-		Name:      plan.Name.ValueString(),
-		Enabled:   plan.Enabled.ValueBool(),
-		SSID:      plan.SSID.ValueString(),
-		Security:  plan.Security.ValueString(),
-		NetworkID: plan.NetworkID.ValueString(),
-	}
-	if !plan.Passphrase.IsNull() {
-		dto.Passphrase = plan.Passphrase.ValueString()
-	}
-	if !plan.Mode.IsNull() {
-		dto.Mode = plan.Mode.ValueString()
-	}
+	dto := r.modelToDto(plan)
 
 	res, err := r.client.UpdateWifiBroadcast(ctx, plan.SiteID.ValueString(), plan.ID.ValueString(), dto)
 	if err != nil {
@@ -200,8 +167,8 @@ func (r *WifiBroadcastResource) Update(ctx context.Context, req resource.UpdateR
 		return
 	}
 
-	plan.ID = types.StringValue(res.ID)
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	state := r.dtoToModel(plan.SiteID.ValueString(), res.ID, res, plan)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
 func (r *WifiBroadcastResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
@@ -212,7 +179,7 @@ func (r *WifiBroadcastResource) Delete(ctx context.Context, req resource.DeleteR
 	}
 
 	err := r.client.DeleteWifiBroadcast(ctx, state.SiteID.ValueString(), state.ID.ValueString())
-	if err != nil {
+	if err != nil && !client.IsNotFound(err) {
 		resp.Diagnostics.AddError("Error Deleting UniFi WiFi Broadcast", err.Error())
 		return
 	}
@@ -226,4 +193,57 @@ func (r *WifiBroadcastResource) ImportState(ctx context.Context, req resource.Im
 	}
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("site_id"), parts[0])...)
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), parts[1])...)
+}
+
+func (r *WifiBroadcastResource) dtoToModel(siteID string, id string, res *client.WifiBroadcastDto, plan WifiBroadcastResourceModel) WifiBroadcastResourceModel {
+	state := WifiBroadcastResourceModel{
+		ID:        types.StringValue(id),
+		SiteID:    types.StringValue(siteID),
+		Name:      types.StringValue(res.Name),
+		Enabled:   types.BoolValue(res.Enabled),
+		SSID:      types.StringValue(res.SSID),
+		Security:  types.StringValue(res.Security),
+		NetworkID: types.StringValue(res.NetworkID),
+	}
+
+	if res.Mode != "" {
+		state.Mode = types.StringValue(res.Mode)
+	} else {
+		state.Mode = types.StringNull()
+	}
+
+	if res.Passphrase != "" {
+		state.Passphrase = types.StringValue(res.Passphrase)
+	} else {
+		state.Passphrase = plan.Passphrase
+	}
+
+	return state
+}
+
+func (r *WifiBroadcastResource) modelToDto(plan WifiBroadcastResourceModel) *client.WifiBroadcastDto {
+	dto := &client.WifiBroadcastDto{}
+
+	if !plan.Name.IsNull() && !plan.Name.IsUnknown() {
+		dto.Name = plan.Name.ValueString()
+	}
+	if !plan.Enabled.IsNull() && !plan.Enabled.IsUnknown() {
+		dto.Enabled = plan.Enabled.ValueBool()
+	}
+	if !plan.SSID.IsNull() && !plan.SSID.IsUnknown() {
+		dto.SSID = plan.SSID.ValueString()
+	}
+	if !plan.Security.IsNull() && !plan.Security.IsUnknown() {
+		dto.Security = plan.Security.ValueString()
+	}
+	if !plan.NetworkID.IsNull() && !plan.NetworkID.IsUnknown() {
+		dto.NetworkID = plan.NetworkID.ValueString()
+	}
+	if !plan.Passphrase.IsNull() && !plan.Passphrase.IsUnknown() {
+		dto.Passphrase = plan.Passphrase.ValueString()
+	}
+	if !plan.Mode.IsNull() && !plan.Mode.IsUnknown() {
+		dto.Mode = plan.Mode.ValueString()
+	}
+	return dto
 }

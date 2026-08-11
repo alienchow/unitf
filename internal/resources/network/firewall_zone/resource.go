@@ -64,6 +64,7 @@ func (r *FirewallZoneResource) Schema(ctx context.Context, req resource.SchemaRe
 			"network_ids": schema.ListAttribute{
 				ElementType: types.StringType,
 				Optional:    true,
+				Computed:    true,
 				Description: "List of network IDs associated with this zone.",
 			},
 		},
@@ -74,12 +75,12 @@ func (r *FirewallZoneResource) Configure(ctx context.Context, req resource.Confi
 	if req.ProviderData == nil {
 		return
 	}
-	c, ok := req.ProviderData.(client.NetworkClient)
+	c, ok := req.ProviderData.(*client.Client)
 	if !ok {
-		resp.Diagnostics.AddError("Unexpected Resource Configure Type", "Expected client.NetworkClient")
+		resp.Diagnostics.AddError("Unexpected Resource Configure Type", "Expected *client.Client")
 		return
 	}
-	r.client = c
+	r.client = c.Network
 }
 
 // NOTE: API Client stubs for Firewall Zone logic will be added here
@@ -92,13 +93,7 @@ func (r *FirewallZoneResource) Create(ctx context.Context, req resource.CreateRe
 		return
 	}
 
-	dto := &client.FirewallZoneDto{
-		Name: plan.Name.ValueString(),
-	}
-
-	for _, n := range plan.NetworkIDs {
-		dto.NetworkIDs = append(dto.NetworkIDs, n.ValueString())
-	}
+	dto := r.modelToDto(plan)
 
 	res, err := r.client.CreateFirewallZone(ctx, plan.SiteID.ValueString(), dto)
 	if err != nil {
@@ -106,8 +101,8 @@ func (r *FirewallZoneResource) Create(ctx context.Context, req resource.CreateRe
 		return
 	}
 
-	plan.ID = types.StringValue(res.ID)
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	state := r.dtoToModel(plan.SiteID.ValueString(), res)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
 func (r *FirewallZoneResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
@@ -127,13 +122,8 @@ func (r *FirewallZoneResource) Read(ctx context.Context, req resource.ReadReques
 		return
 	}
 
-	state.Name = types.StringValue(res.Name)
-	state.NetworkIDs = make([]types.String, len(res.NetworkIDs))
-	for i, n := range res.NetworkIDs {
-		state.NetworkIDs[i] = types.StringValue(n)
-	}
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	newState := r.dtoToModel(state.SiteID.ValueString(), res)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &newState)...)
 }
 
 func (r *FirewallZoneResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
@@ -143,13 +133,7 @@ func (r *FirewallZoneResource) Update(ctx context.Context, req resource.UpdateRe
 		return
 	}
 
-	dto := &client.FirewallZoneDto{
-		Name: plan.Name.ValueString(),
-	}
-
-	for _, n := range plan.NetworkIDs {
-		dto.NetworkIDs = append(dto.NetworkIDs, n.ValueString())
-	}
+	dto := r.modelToDto(plan)
 
 	res, err := r.client.UpdateFirewallZone(ctx, plan.SiteID.ValueString(), plan.ID.ValueString(), dto)
 	if err != nil {
@@ -157,8 +141,8 @@ func (r *FirewallZoneResource) Update(ctx context.Context, req resource.UpdateRe
 		return
 	}
 
-	plan.ID = types.StringValue(res.ID)
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	state := r.dtoToModel(plan.SiteID.ValueString(), res)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
 func (r *FirewallZoneResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
@@ -183,4 +167,30 @@ func (r *FirewallZoneResource) ImportState(ctx context.Context, req resource.Imp
 	}
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("site_id"), parts[0])...)
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), parts[1])...)
+}
+
+func (r *FirewallZoneResource) dtoToModel(siteID string, res *client.FirewallZoneDto) FirewallZoneResourceModel {
+	state := FirewallZoneResourceModel{
+		ID:     types.StringValue(res.ID),
+		SiteID: types.StringValue(siteID),
+		Name:   types.StringValue(res.Name),
+	}
+	state.NetworkIDs = make([]types.String, len(res.NetworkIDs))
+	for i, n := range res.NetworkIDs {
+		state.NetworkIDs[i] = types.StringValue(n)
+	}
+	return state
+}
+
+func (r *FirewallZoneResource) modelToDto(model FirewallZoneResourceModel) *client.FirewallZoneDto {
+	dto := &client.FirewallZoneDto{}
+	if !model.Name.IsNull() && !model.Name.IsUnknown() {
+		dto.Name = model.Name.ValueString()
+	}
+	for _, n := range model.NetworkIDs {
+		if !n.IsNull() && !n.IsUnknown() {
+			dto.NetworkIDs = append(dto.NetworkIDs, n.ValueString())
+		}
+	}
+	return dto
 }

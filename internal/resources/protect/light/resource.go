@@ -50,14 +50,17 @@ func (r *ProtectLightResource) Schema(ctx context.Context, req resource.SchemaRe
 			},
 			"name": schema.StringAttribute{
 				Optional:    true,
+				Computed:    true,
 				Description: "Name of the light.",
 			},
 			"is_indicator_enabled": schema.BoolAttribute{
 				Optional:    true,
+				Computed:    true,
 				Description: "Enable status indicator.",
 			},
 			"led_level": schema.Int64Attribute{
 				Optional:    true,
+				Computed:    true,
 				Description: "Brightness level.",
 			},
 		},
@@ -68,12 +71,12 @@ func (r *ProtectLightResource) Configure(ctx context.Context, req resource.Confi
 	if req.ProviderData == nil {
 		return
 	}
-	c, ok := req.ProviderData.(client.ProtectClient)
+	c, ok := req.ProviderData.(*client.Client)
 	if !ok {
-		resp.Diagnostics.AddError("Unexpected Resource Configure Type", "Expected client.ProtectClient")
+		resp.Diagnostics.AddError("Unexpected Resource Configure Type", "Expected *client.Client")
 		return
 	}
-	r.client = c
+	r.client = c.Protect
 }
 
 func (r *ProtectLightResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
@@ -83,24 +86,16 @@ func (r *ProtectLightResource) Create(ctx context.Context, req resource.CreateRe
 		return
 	}
 
-	dto := &client.LightDto{
-		Name:                plan.Name.ValueString(),
-		LightDeviceSettings: &client.LightSettings{},
-	}
-	if !plan.IsIndicatorEnabled.IsNull() {
-		dto.LightDeviceSettings.IsIndicatorEnabled = plan.IsIndicatorEnabled.ValueBool()
-	}
-	if !plan.LedLevel.IsNull() {
-		dto.LightDeviceSettings.LedLevel = int(plan.LedLevel.ValueInt64())
-	}
+	dto := r.modelToDto(plan)
 
-	_, err := r.client.UpdateLight(ctx, plan.ID.ValueString(), dto)
+	res, err := r.client.UpdateLight(ctx, plan.ID.ValueString(), dto)
 	if err != nil {
 		resp.Diagnostics.AddError("Error Configuring UniFi Protect Light", err.Error())
 		return
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	state := r.dtoToModel(plan.ID.ValueString(), res)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
 func (r *ProtectLightResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
@@ -120,13 +115,8 @@ func (r *ProtectLightResource) Read(ctx context.Context, req resource.ReadReques
 		return
 	}
 
-	state.Name = types.StringValue(res.Name)
-	if res.LightDeviceSettings != nil {
-		state.IsIndicatorEnabled = types.BoolValue(res.LightDeviceSettings.IsIndicatorEnabled)
-		state.LedLevel = types.Int64Value(int64(res.LightDeviceSettings.LedLevel))
-	}
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	newState := r.dtoToModel(state.ID.ValueString(), res)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &newState)...)
 }
 
 func (r *ProtectLightResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
@@ -136,24 +126,16 @@ func (r *ProtectLightResource) Update(ctx context.Context, req resource.UpdateRe
 		return
 	}
 
-	dto := &client.LightDto{
-		Name:                plan.Name.ValueString(),
-		LightDeviceSettings: &client.LightSettings{},
-	}
-	if !plan.IsIndicatorEnabled.IsNull() {
-		dto.LightDeviceSettings.IsIndicatorEnabled = plan.IsIndicatorEnabled.ValueBool()
-	}
-	if !plan.LedLevel.IsNull() {
-		dto.LightDeviceSettings.LedLevel = int(plan.LedLevel.ValueInt64())
-	}
+	dto := r.modelToDto(plan)
 
-	_, err := r.client.UpdateLight(ctx, plan.ID.ValueString(), dto)
+	res, err := r.client.UpdateLight(ctx, plan.ID.ValueString(), dto)
 	if err != nil {
 		resp.Diagnostics.AddError("Error Updating UniFi Protect Light", err.Error())
 		return
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	state := r.dtoToModel(plan.ID.ValueString(), res)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
 func (r *ProtectLightResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
@@ -162,4 +144,35 @@ func (r *ProtectLightResource) Delete(ctx context.Context, req resource.DeleteRe
 
 func (r *ProtectLightResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+}
+
+func (r *ProtectLightResource) dtoToModel(id string, dto *client.LightDto) ProtectLightResourceModel {
+	state := ProtectLightResourceModel{
+		ID:   types.StringValue(id),
+		Name: types.StringValue(dto.Name),
+	}
+	if dto.LightDeviceSettings != nil {
+		state.IsIndicatorEnabled = types.BoolValue(dto.LightDeviceSettings.IsIndicatorEnabled)
+		state.LedLevel = types.Int64Value(int64(dto.LightDeviceSettings.LedLevel))
+	} else {
+		state.IsIndicatorEnabled = types.BoolNull()
+		state.LedLevel = types.Int64Null()
+	}
+	return state
+}
+
+func (r *ProtectLightResource) modelToDto(model ProtectLightResourceModel) *client.LightDto {
+	dto := &client.LightDto{
+		LightDeviceSettings: &client.LightSettings{},
+	}
+	if !model.Name.IsNull() && !model.Name.IsUnknown() {
+		dto.Name = model.Name.ValueString()
+	}
+	if !model.IsIndicatorEnabled.IsNull() && !model.IsIndicatorEnabled.IsUnknown() {
+		dto.LightDeviceSettings.IsIndicatorEnabled = model.IsIndicatorEnabled.ValueBool()
+	}
+	if !model.LedLevel.IsNull() && !model.LedLevel.IsUnknown() {
+		dto.LightDeviceSettings.LedLevel = int(model.LedLevel.ValueInt64())
+	}
+	return dto
 }

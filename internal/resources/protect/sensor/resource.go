@@ -50,14 +50,17 @@ func (r *ProtectSensorResource) Schema(ctx context.Context, req resource.SchemaR
 			},
 			"name": schema.StringAttribute{
 				Optional:    true,
+				Computed:    true,
 				Description: "Name of the sensor.",
 			},
 			"alarm": schema.BoolAttribute{
 				Optional:    true,
+				Computed:    true,
 				Description: "Is alarm enabled?",
 			},
 			"temp_limit": schema.Int64Attribute{
 				Optional:    true,
+				Computed:    true,
 				Description: "Temperature alarm threshold.",
 			},
 		},
@@ -68,12 +71,12 @@ func (r *ProtectSensorResource) Configure(ctx context.Context, req resource.Conf
 	if req.ProviderData == nil {
 		return
 	}
-	c, ok := req.ProviderData.(client.ProtectClient)
+	c, ok := req.ProviderData.(*client.Client)
 	if !ok {
-		resp.Diagnostics.AddError("Unexpected Resource Configure Type", "Expected client.ProtectClient")
+		resp.Diagnostics.AddError("Unexpected Resource Configure Type", "Expected *client.Client")
 		return
 	}
-	r.client = c
+	r.client = c.Protect
 }
 
 func (r *ProtectSensorResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
@@ -83,23 +86,16 @@ func (r *ProtectSensorResource) Create(ctx context.Context, req resource.CreateR
 		return
 	}
 
-	dto := &client.SensorDto{
-		Name: plan.Name.ValueString(),
-	}
-	if !plan.Alarm.IsNull() {
-		dto.Alarm = plan.Alarm.ValueBool()
-	}
-	if !plan.TempLimit.IsNull() {
-		dto.TempLimit = int(plan.TempLimit.ValueInt64())
-	}
+	dto := r.modelToDto(plan)
 
-	_, err := r.client.UpdateSensor(ctx, plan.ID.ValueString(), dto)
+	res, err := r.client.UpdateSensor(ctx, plan.ID.ValueString(), dto)
 	if err != nil {
 		resp.Diagnostics.AddError("Error Configuring UniFi Protect Sensor", err.Error())
 		return
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	state := r.dtoToModel(plan.ID.ValueString(), res)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
 func (r *ProtectSensorResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
@@ -119,11 +115,8 @@ func (r *ProtectSensorResource) Read(ctx context.Context, req resource.ReadReque
 		return
 	}
 
-	state.Name = types.StringValue(res.Name)
-	state.Alarm = types.BoolValue(res.Alarm)
-	state.TempLimit = types.Int64Value(int64(res.TempLimit))
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	newState := r.dtoToModel(state.ID.ValueString(), res)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &newState)...)
 }
 
 func (r *ProtectSensorResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
@@ -133,23 +126,16 @@ func (r *ProtectSensorResource) Update(ctx context.Context, req resource.UpdateR
 		return
 	}
 
-	dto := &client.SensorDto{
-		Name: plan.Name.ValueString(),
-	}
-	if !plan.Alarm.IsNull() {
-		dto.Alarm = plan.Alarm.ValueBool()
-	}
-	if !plan.TempLimit.IsNull() {
-		dto.TempLimit = int(plan.TempLimit.ValueInt64())
-	}
+	dto := r.modelToDto(plan)
 
-	_, err := r.client.UpdateSensor(ctx, plan.ID.ValueString(), dto)
+	res, err := r.client.UpdateSensor(ctx, plan.ID.ValueString(), dto)
 	if err != nil {
 		resp.Diagnostics.AddError("Error Updating UniFi Protect Sensor", err.Error())
 		return
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	state := r.dtoToModel(plan.ID.ValueString(), res)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
 func (r *ProtectSensorResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
@@ -158,4 +144,27 @@ func (r *ProtectSensorResource) Delete(ctx context.Context, req resource.DeleteR
 
 func (r *ProtectSensorResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+}
+
+func (r *ProtectSensorResource) dtoToModel(id string, dto *client.SensorDto) ProtectSensorResourceModel {
+	return ProtectSensorResourceModel{
+		ID:        types.StringValue(id),
+		Name:      types.StringValue(dto.Name),
+		Alarm:     types.BoolValue(dto.Alarm),
+		TempLimit: types.Int64Value(int64(dto.TempLimit)),
+	}
+}
+
+func (r *ProtectSensorResource) modelToDto(model ProtectSensorResourceModel) *client.SensorDto {
+	dto := &client.SensorDto{}
+	if !model.Name.IsNull() && !model.Name.IsUnknown() {
+		dto.Name = model.Name.ValueString()
+	}
+	if !model.Alarm.IsNull() && !model.Alarm.IsUnknown() {
+		dto.Alarm = model.Alarm.ValueBool()
+	}
+	if !model.TempLimit.IsNull() && !model.TempLimit.IsUnknown() {
+		dto.TempLimit = int(model.TempLimit.ValueInt64())
+	}
+	return dto
 }

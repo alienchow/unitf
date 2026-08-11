@@ -137,31 +137,34 @@ func (r *FirewallPolicyResource) Schema(ctx context.Context, req resource.Schema
 					"protocols": schema.ListAttribute{
 						ElementType: types.StringType,
 						Optional:    true,
+						Computed:    true,
 					},
 				},
 			},
 			"source": schema.SingleNestedAttribute{
 				Optional:    true,
+				Computed:    true,
 				Description: "Source endpoint matching.",
 				Attributes: map[string]schema.Attribute{
-					"zone_id":       schema.StringAttribute{Optional: true},
-					"network_id":    schema.StringAttribute{Optional: true},
-					"address":       schema.StringAttribute{Optional: true},
-					"port":          schema.StringAttribute{Optional: true},
-					"mac_address":   schema.StringAttribute{Optional: true},
-					"match_list_id": schema.StringAttribute{Optional: true},
+					"zone_id":       schema.StringAttribute{Optional: true, Computed: true},
+					"network_id":    schema.StringAttribute{Optional: true, Computed: true},
+					"address":       schema.StringAttribute{Optional: true, Computed: true},
+					"port":          schema.StringAttribute{Optional: true, Computed: true},
+					"mac_address":   schema.StringAttribute{Optional: true, Computed: true},
+					"match_list_id": schema.StringAttribute{Optional: true, Computed: true},
 				},
 			},
 			"destination": schema.SingleNestedAttribute{
 				Optional:    true,
+				Computed:    true,
 				Description: "Destination endpoint matching.",
 				Attributes: map[string]schema.Attribute{
-					"zone_id":       schema.StringAttribute{Optional: true},
-					"network_id":    schema.StringAttribute{Optional: true},
-					"address":       schema.StringAttribute{Optional: true},
-					"port":          schema.StringAttribute{Optional: true},
-					"mac_address":   schema.StringAttribute{Optional: true},
-					"match_list_id": schema.StringAttribute{Optional: true},
+					"zone_id":       schema.StringAttribute{Optional: true, Computed: true},
+					"network_id":    schema.StringAttribute{Optional: true, Computed: true},
+					"address":       schema.StringAttribute{Optional: true, Computed: true},
+					"port":          schema.StringAttribute{Optional: true, Computed: true},
+					"mac_address":   schema.StringAttribute{Optional: true, Computed: true},
+					"match_list_id": schema.StringAttribute{Optional: true, Computed: true},
 				},
 			},
 		},
@@ -172,12 +175,12 @@ func (r *FirewallPolicyResource) Configure(ctx context.Context, req resource.Con
 	if req.ProviderData == nil {
 		return
 	}
-	c, ok := req.ProviderData.(client.NetworkClient)
+	c, ok := req.ProviderData.(*client.Client)
 	if !ok {
-		resp.Diagnostics.AddError("Unexpected Resource Configure Type", "Expected client.NetworkClient")
+		resp.Diagnostics.AddError("Unexpected Resource Configure Type", "Expected *client.Client")
 		return
 	}
-	r.client = c
+	r.client = c.Network
 }
 
 func mapToEndpointDto(model *FirewallEndpointModel) *client.FirewallEndpointDto {
@@ -185,22 +188,22 @@ func mapToEndpointDto(model *FirewallEndpointModel) *client.FirewallEndpointDto 
 		return nil
 	}
 	dto := &client.FirewallEndpointDto{}
-	if !model.ZoneID.IsNull() {
+	if !model.ZoneID.IsNull() && !model.ZoneID.IsUnknown() {
 		dto.ZoneID = model.ZoneID.ValueString()
 	}
-	if !model.NetworkID.IsNull() {
+	if !model.NetworkID.IsNull() && !model.NetworkID.IsUnknown() {
 		dto.NetworkID = model.NetworkID.ValueString()
 	}
-	if !model.Address.IsNull() {
+	if !model.Address.IsNull() && !model.Address.IsUnknown() {
 		dto.Address = model.Address.ValueString()
 	}
-	if !model.Port.IsNull() {
+	if !model.Port.IsNull() && !model.Port.IsUnknown() {
 		dto.Port = model.Port.ValueString()
 	}
-	if !model.MACAddress.IsNull() {
+	if !model.MACAddress.IsNull() && !model.MACAddress.IsUnknown() {
 		dto.MACAddress = model.MACAddress.ValueString()
 	}
-	if !model.MatchListID.IsNull() {
+	if !model.MatchListID.IsNull() && !model.MatchListID.IsUnknown() {
 		dto.MatchListID = model.MatchListID.ValueString()
 	}
 	return dto
@@ -244,39 +247,7 @@ func (r *FirewallPolicyResource) Create(ctx context.Context, req resource.Create
 		return
 	}
 
-	dto := &client.FirewallPolicyDto{
-		Name:    plan.Name.ValueString(),
-		Enabled: plan.Enabled.ValueBool(),
-		Logging: plan.Logging.ValueBool(),
-	}
-
-	if plan.Action != nil {
-		dto.Action = &client.FirewallActionDto{}
-		if plan.Action.Accept != nil {
-			dto.Action.Accept = &struct{}{}
-		}
-		if plan.Action.Block != nil {
-			dto.Action.Block = &struct{}{}
-		}
-		if plan.Action.Drop != nil {
-			dto.Action.Drop = &struct{}{}
-		}
-		if plan.Action.Reject != nil {
-			dto.Action.Reject = &struct{}{}
-		}
-	}
-
-	if plan.IPProtocolScope != nil {
-		dto.IPProtocolScope = &client.IPProtocolScopeDto{
-			IPVersion: plan.IPProtocolScope.IPVersion.ValueString(),
-		}
-		for _, p := range plan.IPProtocolScope.Protocols {
-			dto.IPProtocolScope.Protocols = append(dto.IPProtocolScope.Protocols, p.ValueString())
-		}
-	}
-
-	dto.Source = mapToEndpointDto(plan.Source)
-	dto.Destination = mapToEndpointDto(plan.Destination)
+	dto := r.modelToDto(plan)
 
 	res, err := r.client.CreateFirewallPolicy(ctx, plan.SiteID.ValueString(), dto)
 	if err != nil {
@@ -284,8 +255,8 @@ func (r *FirewallPolicyResource) Create(ctx context.Context, req resource.Create
 		return
 	}
 
-	plan.ID = types.StringValue(res.ID)
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	state := r.dtoToModel(plan.SiteID.ValueString(), res)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
 func (r *FirewallPolicyResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
@@ -305,41 +276,8 @@ func (r *FirewallPolicyResource) Read(ctx context.Context, req resource.ReadRequ
 		return
 	}
 
-	state.Name = types.StringValue(res.Name)
-	state.Enabled = types.BoolValue(res.Enabled)
-	state.Logging = types.BoolValue(res.Logging)
-
-	if res.Action != nil {
-		state.Action = &FirewallActionModel{}
-		if res.Action.Accept != nil {
-			state.Action.Accept = &struct{}{}
-		}
-		if res.Action.Block != nil {
-			state.Action.Block = &struct{}{}
-		}
-		if res.Action.Drop != nil {
-			state.Action.Drop = &struct{}{}
-		}
-		if res.Action.Reject != nil {
-			state.Action.Reject = &struct{}{}
-		}
-	}
-
-	if res.IPProtocolScope != nil {
-		state.IPProtocolScope = &IPProtocolScopeModel{
-			IPVersion: types.StringValue(res.IPProtocolScope.IPVersion),
-		}
-		for _, p := range res.IPProtocolScope.Protocols {
-			state.IPProtocolScope.Protocols = append(state.IPProtocolScope.Protocols, types.StringValue(p))
-		}
-	} else {
-		state.IPProtocolScope = nil
-	}
-
-	state.Source = mapToEndpointModel(res.Source)
-	state.Destination = mapToEndpointModel(res.Destination)
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	newState := r.dtoToModel(state.SiteID.ValueString(), res)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &newState)...)
 }
 
 func (r *FirewallPolicyResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
@@ -349,39 +287,7 @@ func (r *FirewallPolicyResource) Update(ctx context.Context, req resource.Update
 		return
 	}
 
-	dto := &client.FirewallPolicyDto{
-		Name:    plan.Name.ValueString(),
-		Enabled: plan.Enabled.ValueBool(),
-		Logging: plan.Logging.ValueBool(),
-	}
-
-	if plan.Action != nil {
-		dto.Action = &client.FirewallActionDto{}
-		if plan.Action.Accept != nil {
-			dto.Action.Accept = &struct{}{}
-		}
-		if plan.Action.Block != nil {
-			dto.Action.Block = &struct{}{}
-		}
-		if plan.Action.Drop != nil {
-			dto.Action.Drop = &struct{}{}
-		}
-		if plan.Action.Reject != nil {
-			dto.Action.Reject = &struct{}{}
-		}
-	}
-
-	if plan.IPProtocolScope != nil {
-		dto.IPProtocolScope = &client.IPProtocolScopeDto{
-			IPVersion: plan.IPProtocolScope.IPVersion.ValueString(),
-		}
-		for _, p := range plan.IPProtocolScope.Protocols {
-			dto.IPProtocolScope.Protocols = append(dto.IPProtocolScope.Protocols, p.ValueString())
-		}
-	}
-
-	dto.Source = mapToEndpointDto(plan.Source)
-	dto.Destination = mapToEndpointDto(plan.Destination)
+	dto := r.modelToDto(plan)
 
 	res, err := r.client.UpdateFirewallPolicy(ctx, plan.SiteID.ValueString(), plan.ID.ValueString(), dto)
 	if err != nil {
@@ -389,8 +295,8 @@ func (r *FirewallPolicyResource) Update(ctx context.Context, req resource.Update
 		return
 	}
 
-	plan.ID = types.StringValue(res.ID)
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	state := r.dtoToModel(plan.SiteID.ValueString(), res)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
 func (r *FirewallPolicyResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
@@ -415,4 +321,90 @@ func (r *FirewallPolicyResource) ImportState(ctx context.Context, req resource.I
 	}
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("site_id"), parts[0])...)
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), parts[1])...)
+}
+
+func (r *FirewallPolicyResource) dtoToModel(siteID string, res *client.FirewallPolicyDto) FirewallPolicyResourceModel {
+	state := FirewallPolicyResourceModel{
+		ID:      types.StringValue(res.ID),
+		SiteID:  types.StringValue(siteID),
+		Name:    types.StringValue(res.Name),
+		Enabled: types.BoolValue(res.Enabled),
+		Logging: types.BoolValue(res.Logging),
+	}
+
+	if res.Action != nil {
+		state.Action = &FirewallActionModel{}
+		if res.Action.Accept != nil {
+			state.Action.Accept = &struct{}{}
+		}
+		if res.Action.Block != nil {
+			state.Action.Block = &struct{}{}
+		}
+		if res.Action.Drop != nil {
+			state.Action.Drop = &struct{}{}
+		}
+		if res.Action.Reject != nil {
+			state.Action.Reject = &struct{}{}
+		}
+	}
+
+	if res.IPProtocolScope != nil {
+		state.IPProtocolScope = &IPProtocolScopeModel{
+			IPVersion: types.StringValue(res.IPProtocolScope.IPVersion),
+		}
+		for _, p := range res.IPProtocolScope.Protocols {
+			state.IPProtocolScope.Protocols = append(state.IPProtocolScope.Protocols, types.StringValue(p))
+		}
+	}
+
+	state.Source = mapToEndpointModel(res.Source)
+	state.Destination = mapToEndpointModel(res.Destination)
+
+	return state
+}
+
+func (r *FirewallPolicyResource) modelToDto(model FirewallPolicyResourceModel) *client.FirewallPolicyDto {
+	dto := &client.FirewallPolicyDto{}
+	if !model.Name.IsNull() && !model.Name.IsUnknown() {
+		dto.Name = model.Name.ValueString()
+	}
+	if !model.Enabled.IsNull() && !model.Enabled.IsUnknown() {
+		dto.Enabled = model.Enabled.ValueBool()
+	}
+	if !model.Logging.IsNull() && !model.Logging.IsUnknown() {
+		dto.Logging = model.Logging.ValueBool()
+	}
+
+	if model.Action != nil {
+		dto.Action = &client.FirewallActionDto{}
+		if model.Action.Accept != nil {
+			dto.Action.Accept = &struct{}{}
+		}
+		if model.Action.Block != nil {
+			dto.Action.Block = &struct{}{}
+		}
+		if model.Action.Drop != nil {
+			dto.Action.Drop = &struct{}{}
+		}
+		if model.Action.Reject != nil {
+			dto.Action.Reject = &struct{}{}
+		}
+	}
+
+	if model.IPProtocolScope != nil {
+		dto.IPProtocolScope = &client.IPProtocolScopeDto{}
+		if !model.IPProtocolScope.IPVersion.IsNull() && !model.IPProtocolScope.IPVersion.IsUnknown() {
+			dto.IPProtocolScope.IPVersion = model.IPProtocolScope.IPVersion.ValueString()
+		}
+		for _, p := range model.IPProtocolScope.Protocols {
+			if !p.IsNull() && !p.IsUnknown() {
+				dto.IPProtocolScope.Protocols = append(dto.IPProtocolScope.Protocols, p.ValueString())
+			}
+		}
+	}
+
+	dto.Source = mapToEndpointDto(model.Source)
+	dto.Destination = mapToEndpointDto(model.Destination)
+
+	return dto
 }

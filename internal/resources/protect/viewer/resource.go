@@ -49,10 +49,12 @@ func (r *ProtectViewerResource) Schema(ctx context.Context, req resource.SchemaR
 			},
 			"name": schema.StringAttribute{
 				Optional:    true,
+				Computed:    true,
 				Description: "Name of the viewer.",
 			},
 			"liveview_id": schema.StringAttribute{
 				Optional:    true,
+				Computed:    true,
 				Description: "Liveview ID to display.",
 			},
 		},
@@ -63,12 +65,12 @@ func (r *ProtectViewerResource) Configure(ctx context.Context, req resource.Conf
 	if req.ProviderData == nil {
 		return
 	}
-	c, ok := req.ProviderData.(client.ProtectClient)
+	c, ok := req.ProviderData.(*client.Client)
 	if !ok {
-		resp.Diagnostics.AddError("Unexpected Resource Configure Type", "Expected client.ProtectClient")
+		resp.Diagnostics.AddError("Unexpected Resource Configure Type", "Expected *client.Client")
 		return
 	}
-	r.client = c
+	r.client = c.Protect
 }
 
 func (r *ProtectViewerResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
@@ -78,18 +80,16 @@ func (r *ProtectViewerResource) Create(ctx context.Context, req resource.CreateR
 		return
 	}
 
-	dto := &client.ViewerDto{
-		Name:       plan.Name.ValueString(),
-		LiveviewID: plan.LiveviewID.ValueString(),
-	}
+	dto := r.modelToDto(plan)
 
-	_, err := r.client.UpdateViewer(ctx, plan.ID.ValueString(), dto)
+	res, err := r.client.UpdateViewer(ctx, plan.ID.ValueString(), dto)
 	if err != nil {
 		resp.Diagnostics.AddError("Error Configuring UniFi Protect Viewer", err.Error())
 		return
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	state := r.dtoToModel(plan.ID.ValueString(), res)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
 func (r *ProtectViewerResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
@@ -109,10 +109,8 @@ func (r *ProtectViewerResource) Read(ctx context.Context, req resource.ReadReque
 		return
 	}
 
-	state.Name = types.StringValue(res.Name)
-	state.LiveviewID = types.StringValue(res.LiveviewID)
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	newState := r.dtoToModel(state.ID.ValueString(), res)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &newState)...)
 }
 
 func (r *ProtectViewerResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
@@ -122,18 +120,16 @@ func (r *ProtectViewerResource) Update(ctx context.Context, req resource.UpdateR
 		return
 	}
 
-	dto := &client.ViewerDto{
-		Name:       plan.Name.ValueString(),
-		LiveviewID: plan.LiveviewID.ValueString(),
-	}
+	dto := r.modelToDto(plan)
 
-	_, err := r.client.UpdateViewer(ctx, plan.ID.ValueString(), dto)
+	res, err := r.client.UpdateViewer(ctx, plan.ID.ValueString(), dto)
 	if err != nil {
 		resp.Diagnostics.AddError("Error Updating UniFi Protect Viewer", err.Error())
 		return
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	state := r.dtoToModel(plan.ID.ValueString(), res)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
 func (r *ProtectViewerResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
@@ -142,4 +138,23 @@ func (r *ProtectViewerResource) Delete(ctx context.Context, req resource.DeleteR
 
 func (r *ProtectViewerResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+}
+
+func (r *ProtectViewerResource) dtoToModel(id string, dto *client.ViewerDto) ProtectViewerResourceModel {
+	return ProtectViewerResourceModel{
+		ID:         types.StringValue(id),
+		Name:       types.StringValue(dto.Name),
+		LiveviewID: types.StringValue(dto.LiveviewID),
+	}
+}
+
+func (r *ProtectViewerResource) modelToDto(model ProtectViewerResourceModel) *client.ViewerDto {
+	dto := &client.ViewerDto{}
+	if !model.Name.IsNull() && !model.Name.IsUnknown() {
+		dto.Name = model.Name.ValueString()
+	}
+	if !model.LiveviewID.IsNull() && !model.LiveviewID.IsUnknown() {
+		dto.LiveviewID = model.LiveviewID.ValueString()
+	}
+	return dto
 }

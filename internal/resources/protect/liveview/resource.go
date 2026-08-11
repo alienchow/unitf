@@ -58,12 +58,12 @@ func (r *ProtectLiveviewResource) Configure(ctx context.Context, req resource.Co
 	if req.ProviderData == nil {
 		return
 	}
-	c, ok := req.ProviderData.(client.ProtectClient)
+	c, ok := req.ProviderData.(*client.Client)
 	if !ok {
-		resp.Diagnostics.AddError("Unexpected Resource Configure Type", "Expected client.ProtectClient")
+		resp.Diagnostics.AddError("Unexpected Resource Configure Type", "Expected *client.Client")
 		return
 	}
-	r.client = c
+	r.client = c.Protect
 }
 
 func (r *ProtectLiveviewResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
@@ -73,9 +73,7 @@ func (r *ProtectLiveviewResource) Create(ctx context.Context, req resource.Creat
 		return
 	}
 
-	dto := &client.LiveviewDto{
-		Name: plan.Name.ValueString(),
-	}
+	dto := r.modelToDto(plan)
 
 	res, err := r.client.CreateLiveview(ctx, dto)
 	if err != nil {
@@ -83,8 +81,8 @@ func (r *ProtectLiveviewResource) Create(ctx context.Context, req resource.Creat
 		return
 	}
 
-	plan.ID = types.StringValue(res.ID)
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	state := r.dtoToModel(res.ID, res)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
 func (r *ProtectLiveviewResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
@@ -104,8 +102,8 @@ func (r *ProtectLiveviewResource) Read(ctx context.Context, req resource.ReadReq
 		return
 	}
 
-	state.Name = types.StringValue(res.Name)
-	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	newState := r.dtoToModel(state.ID.ValueString(), res)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &newState)...)
 }
 
 func (r *ProtectLiveviewResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
@@ -115,9 +113,7 @@ func (r *ProtectLiveviewResource) Update(ctx context.Context, req resource.Updat
 		return
 	}
 
-	dto := &client.LiveviewDto{
-		Name: plan.Name.ValueString(),
-	}
+	dto := r.modelToDto(plan)
 
 	res, err := r.client.UpdateLiveview(ctx, plan.ID.ValueString(), dto)
 	if err != nil {
@@ -125,8 +121,8 @@ func (r *ProtectLiveviewResource) Update(ctx context.Context, req resource.Updat
 		return
 	}
 
-	plan.ID = types.StringValue(res.ID)
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	state := r.dtoToModel(plan.ID.ValueString(), res)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
 func (r *ProtectLiveviewResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
@@ -145,4 +141,19 @@ func (r *ProtectLiveviewResource) Delete(ctx context.Context, req resource.Delet
 
 func (r *ProtectLiveviewResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+}
+
+func (r *ProtectLiveviewResource) dtoToModel(id string, dto *client.LiveviewDto) ProtectLiveviewResourceModel {
+	return ProtectLiveviewResourceModel{
+		ID:   types.StringValue(id),
+		Name: types.StringValue(dto.Name),
+	}
+}
+
+func (r *ProtectLiveviewResource) modelToDto(model ProtectLiveviewResourceModel) *client.LiveviewDto {
+	dto := &client.LiveviewDto{}
+	if !model.Name.IsNull() && !model.Name.IsUnknown() {
+		dto.Name = model.Name.ValueString()
+	}
+	return dto
 }
