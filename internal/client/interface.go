@@ -82,4 +82,4 @@ type NetworkClient interface {
 }
 
 // Client implements NetworkClient
-var _ NetworkClient = (*Client)(nil)
+var _ NetworkClient = (*NetworkHandler)(nil)

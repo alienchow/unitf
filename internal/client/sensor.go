@@ -11,19 +11,19 @@ type SensorDto struct {
 	TempLimit int    `json:"tempLimit,omitempty"`
 }
 
-func (c *Client) GetSensor(ctx context.Context, sensorID string) (*SensorDto, error) {
+func (h *ProtectHandler) GetSensor(ctx context.Context, sensorID string) (*SensorDto, error) {
 	path := "/v1/sensors/" + sensorID
 	var resp SensorDto
-	if err := c.Protect.Request(ctx, "GET", path, nil, &resp); err != nil {
+	if err := h.Request(ctx, "GET", path, nil, &resp); err != nil {
 		return nil, err
 	}
 	return &resp, nil
 }
 
-func (c *Client) UpdateSensor(ctx context.Context, sensorID string, req *SensorDto) (*SensorDto, error) {
+func (h *ProtectHandler) UpdateSensor(ctx context.Context, sensorID string, req *SensorDto) (*SensorDto, error) {
 	path := "/v1/sensors/" + sensorID
 	var resp SensorDto
-	if err := c.Protect.Request(ctx, "PATCH", path, req, &resp); err != nil {
+	if err := h.Request(ctx, "PATCH", path, req, &resp); err != nil {
 		return nil, err
 	}
 	return &resp, nil

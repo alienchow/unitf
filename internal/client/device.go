@@ -18,30 +18,30 @@ type Port struct {
 	Name     string `json:"name,omitempty"`
 }
 
-func (c *Client) AdoptDevice(ctx context.Context, siteID string, mac string) error {
+func (h *NetworkHandler) AdoptDevice(ctx context.Context, siteID string, mac string) error {
 	path := "/api/s/" + siteID + "/cmd/devmgr"
 	payload := map[string]interface{}{
 		"cmd": "adopt",
 		"mac": mac,
 	}
-	return c.Network.Request(ctx, "POST", path, payload, nil)
+	return h.Request(ctx, "POST", path, payload, nil)
 }
 
-func (c *Client) ForgetDevice(ctx context.Context, siteID string, mac string) error {
+func (h *NetworkHandler) ForgetDevice(ctx context.Context, siteID string, mac string) error {
 	path := "/api/s/" + siteID + "/cmd/sitemgr"
 	payload := map[string]interface{}{
 		"cmd": "forget-dev",
 		"mac": mac,
 	}
-	return c.Network.Request(ctx, "POST", path, payload, nil)
+	return h.Request(ctx, "POST", path, payload, nil)
 }
 
-func (c *Client) GetDevice(ctx context.Context, siteID string, mac string) (*DeviceDto, error) {
+func (h *NetworkHandler) GetDevice(ctx context.Context, siteID string, mac string) (*DeviceDto, error) {
 	path := "/api/s/" + siteID + "/stat/device/" + mac
 	var resp struct {
 		Data []DeviceDto `json:"data"`
 	}
-	if err := c.Network.Request(ctx, "GET", path, nil, &resp); err != nil {
+	if err := h.Request(ctx, "GET", path, nil, &resp); err != nil {
 		return nil, err
 	}
 	if len(resp.Data) > 0 {
@@ -50,12 +50,12 @@ func (c *Client) GetDevice(ctx context.Context, siteID string, mac string) (*Dev
 	return nil, nil // Or an error "not found"
 }
 
-func (c *Client) UpdateDevice(ctx context.Context, siteID string, deviceID string, req *DeviceDto) (*DeviceDto, error) {
+func (h *NetworkHandler) UpdateDevice(ctx context.Context, siteID string, deviceID string, req *DeviceDto) (*DeviceDto, error) {
 	path := "/api/s/" + siteID + "/upd/device/" + deviceID
 	var resp struct {
 		Data []DeviceDto `json:"data"`
 	}
-	if err := c.Network.Request(ctx, "PUT", path, req, &resp); err != nil {
+	if err := h.Request(ctx, "PUT", path, req, &resp); err != nil {
 		return nil, err
 	}
 	if len(resp.Data) > 0 {

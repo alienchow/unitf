@@ -43,124 +43,124 @@ type LiveviewDto struct {
 	Name string `json:"name,omitempty"`
 }
 
-func (c *Client) GetLight(ctx context.Context, id string) (*LightDto, error) {
+func (h *ProtectHandler) GetLight(ctx context.Context, id string) (*LightDto, error) {
 	path := "/v1/lights/" + id
 	var resp LightDto
-	if err := c.Protect.Request(ctx, "GET", path, nil, &resp); err != nil {
+	if err := h.Request(ctx, "GET", path, nil, &resp); err != nil {
 		return nil, err
 	}
 	return &resp, nil
 }
 
-func (c *Client) UpdateLight(ctx context.Context, id string, req *LightDto) (*LightDto, error) {
+func (h *ProtectHandler) UpdateLight(ctx context.Context, id string, req *LightDto) (*LightDto, error) {
 	path := "/v1/lights/" + id
 	var resp LightDto
-	if err := c.Protect.Request(ctx, "PATCH", path, req, &resp); err != nil {
+	if err := h.Request(ctx, "PATCH", path, req, &resp); err != nil {
 		return nil, err
 	}
 	return &resp, nil
 }
 
-func (c *Client) GetRelay(ctx context.Context, id string) (*RelayDto, error) {
+func (h *ProtectHandler) GetRelay(ctx context.Context, id string) (*RelayDto, error) {
 	path := "/v1/relays/" + id
 	var resp RelayDto
-	if err := c.Protect.Request(ctx, "GET", path, nil, &resp); err != nil {
+	if err := h.Request(ctx, "GET", path, nil, &resp); err != nil {
 		return nil, err
 	}
 	return &resp, nil
 }
 
-func (c *Client) UpdateRelay(ctx context.Context, id string, req *RelayDto) (*RelayDto, error) {
+func (h *ProtectHandler) UpdateRelay(ctx context.Context, id string, req *RelayDto) (*RelayDto, error) {
 	path := "/v1/relays/" + id
 	var resp RelayDto
-	if err := c.Protect.Request(ctx, "PATCH", path, req, &resp); err != nil {
+	if err := h.Request(ctx, "PATCH", path, req, &resp); err != nil {
 		return nil, err
 	}
 	return &resp, nil
 }
 
-func (c *Client) GetSiren(ctx context.Context, id string) (*SirenDto, error) {
+func (h *ProtectHandler) GetSiren(ctx context.Context, id string) (*SirenDto, error) {
 	path := "/v1/sirens/" + id
 	var resp SirenDto
-	if err := c.Protect.Request(ctx, "GET", path, nil, &resp); err != nil {
+	if err := h.Request(ctx, "GET", path, nil, &resp); err != nil {
 		return nil, err
 	}
 	return &resp, nil
 }
 
-func (c *Client) UpdateSiren(ctx context.Context, id string, req *SirenDto) (*SirenDto, error) {
+func (h *ProtectHandler) UpdateSiren(ctx context.Context, id string, req *SirenDto) (*SirenDto, error) {
 	path := "/v1/sirens/" + id
 	var resp SirenDto
-	if err := c.Protect.Request(ctx, "PATCH", path, req, &resp); err != nil {
+	if err := h.Request(ctx, "PATCH", path, req, &resp); err != nil {
 		return nil, err
 	}
 	return &resp, nil
 }
 
-func (c *Client) GetChime(ctx context.Context, id string) (*ChimeDto, error) {
+func (h *ProtectHandler) GetChime(ctx context.Context, id string) (*ChimeDto, error) {
 	path := "/v1/chimes/" + id
 	var resp ChimeDto
-	if err := c.Protect.Request(ctx, "GET", path, nil, &resp); err != nil {
+	if err := h.Request(ctx, "GET", path, nil, &resp); err != nil {
 		return nil, err
 	}
 	return &resp, nil
 }
 
-func (c *Client) UpdateChime(ctx context.Context, id string, req *ChimeDto) (*ChimeDto, error) {
+func (h *ProtectHandler) UpdateChime(ctx context.Context, id string, req *ChimeDto) (*ChimeDto, error) {
 	path := "/v1/chimes/" + id
 	var resp ChimeDto
-	if err := c.Protect.Request(ctx, "PATCH", path, req, &resp); err != nil {
+	if err := h.Request(ctx, "PATCH", path, req, &resp); err != nil {
 		return nil, err
 	}
 	return &resp, nil
 }
 
-func (c *Client) GetViewer(ctx context.Context, id string) (*ViewerDto, error) {
+func (h *ProtectHandler) GetViewer(ctx context.Context, id string) (*ViewerDto, error) {
 	path := "/v1/viewers/" + id
 	var resp ViewerDto
-	if err := c.Protect.Request(ctx, "GET", path, nil, &resp); err != nil {
+	if err := h.Request(ctx, "GET", path, nil, &resp); err != nil {
 		return nil, err
 	}
 	return &resp, nil
 }
 
-func (c *Client) UpdateViewer(ctx context.Context, id string, req *ViewerDto) (*ViewerDto, error) {
+func (h *ProtectHandler) UpdateViewer(ctx context.Context, id string, req *ViewerDto) (*ViewerDto, error) {
 	path := "/v1/viewers/" + id
 	var resp ViewerDto
-	if err := c.Protect.Request(ctx, "PATCH", path, req, &resp); err != nil {
+	if err := h.Request(ctx, "PATCH", path, req, &resp); err != nil {
 		return nil, err
 	}
 	return &resp, nil
 }
 
-func (c *Client) CreateLiveview(ctx context.Context, req *LiveviewDto) (*LiveviewDto, error) {
+func (h *ProtectHandler) CreateLiveview(ctx context.Context, req *LiveviewDto) (*LiveviewDto, error) {
 	path := "/v1/liveviews"
 	var resp LiveviewDto
-	if err := c.Protect.Request(ctx, "POST", path, req, &resp); err != nil {
+	if err := h.Request(ctx, "POST", path, req, &resp); err != nil {
 		return nil, err
 	}
 	return &resp, nil
 }
 
-func (c *Client) GetLiveview(ctx context.Context, id string) (*LiveviewDto, error) {
+func (h *ProtectHandler) GetLiveview(ctx context.Context, id string) (*LiveviewDto, error) {
 	path := "/v1/liveviews/" + id
 	var resp LiveviewDto
-	if err := c.Protect.Request(ctx, "GET", path, nil, &resp); err != nil {
+	if err := h.Request(ctx, "GET", path, nil, &resp); err != nil {
 		return nil, err
 	}
 	return &resp, nil
 }
 
-func (c *Client) UpdateLiveview(ctx context.Context, id string, req *LiveviewDto) (*LiveviewDto, error) {
+func (h *ProtectHandler) UpdateLiveview(ctx context.Context, id string, req *LiveviewDto) (*LiveviewDto, error) {
 	path := "/v1/liveviews/" + id
 	var resp LiveviewDto
-	if err := c.Protect.Request(ctx, "PATCH", path, req, &resp); err != nil {
+	if err := h.Request(ctx, "PATCH", path, req, &resp); err != nil {
 		return nil, err
 	}
 	return &resp, nil
 }
 
-func (c *Client) DeleteLiveview(ctx context.Context, id string) error {
+func (h *ProtectHandler) DeleteLiveview(ctx context.Context, id string) error {
 	path := "/v1/liveviews/" + id
-	return c.Protect.Request(ctx, "DELETE", path, nil, nil)
+	return h.Request(ctx, "DELETE", path, nil, nil)
 }

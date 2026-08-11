@@ -48,44 +48,44 @@ type TimeRangeDto struct {
 	Days      []string `json:"days"`
 }
 
-func (c *Client) CreateFirewallPolicy(ctx context.Context, siteID string, req *FirewallPolicyDto) (*FirewallPolicyDto, error) {
+func (h *NetworkHandler) CreateFirewallPolicy(ctx context.Context, siteID string, req *FirewallPolicyDto) (*FirewallPolicyDto, error) {
 	path := "/v1/sites/" + siteID + "/firewall/policies"
 	var resp FirewallPolicyDto
-	if err := c.Network.Request(ctx, "POST", path, req, &resp); err != nil {
+	if err := h.Request(ctx, "POST", path, req, &resp); err != nil {
 		return nil, err
 	}
 	return &resp, nil
 }
 
-func (c *Client) GetFirewallPolicy(ctx context.Context, siteID, policyID string) (*FirewallPolicyDto, error) {
+func (h *NetworkHandler) GetFirewallPolicy(ctx context.Context, siteID, policyID string) (*FirewallPolicyDto, error) {
 	path := "/v1/sites/" + siteID + "/firewall/policies/" + policyID
 	var resp FirewallPolicyDto
-	if err := c.Network.Request(ctx, "GET", path, nil, &resp); err != nil {
+	if err := h.Request(ctx, "GET", path, nil, &resp); err != nil {
 		return nil, err
 	}
 	return &resp, nil
 }
 
-func (c *Client) UpdateFirewallPolicy(ctx context.Context, siteID, policyID string, req *FirewallPolicyDto) (*FirewallPolicyDto, error) {
+func (h *NetworkHandler) UpdateFirewallPolicy(ctx context.Context, siteID, policyID string, req *FirewallPolicyDto) (*FirewallPolicyDto, error) {
 	path := "/v1/sites/" + siteID + "/firewall/policies/" + policyID
 	var resp FirewallPolicyDto
-	if err := c.Network.Request(ctx, "PUT", path, req, &resp); err != nil {
+	if err := h.Request(ctx, "PUT", path, req, &resp); err != nil {
 		return nil, err
 	}
 	return &resp, nil
 }
 
-func (c *Client) DeleteFirewallPolicy(ctx context.Context, siteID, policyID string) error {
+func (h *NetworkHandler) DeleteFirewallPolicy(ctx context.Context, siteID, policyID string) error {
 	path := "/v1/sites/" + siteID + "/firewall/policies/" + policyID
-	return c.Network.Request(ctx, "DELETE", path, nil, nil)
+	return h.Request(ctx, "DELETE", path, nil, nil)
 }
 
-func (c *Client) ListFirewallPolicies(ctx context.Context, siteID string) ([]FirewallPolicyDto, error) {
+func (h *NetworkHandler) ListFirewallPolicies(ctx context.Context, siteID string) ([]FirewallPolicyDto, error) {
 	path := "/v1/sites/" + siteID + "/firewall/policies"
 	var resp struct {
 		Data []FirewallPolicyDto `json:"data"`
 	}
-	if err := c.Network.Request(ctx, "GET", path, nil, &resp); err != nil {
+	if err := h.Request(ctx, "GET", path, nil, &resp); err != nil {
 		return nil, err
 	}
 	return resp.Data, nil

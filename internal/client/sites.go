@@ -16,10 +16,10 @@ type SiteOverviewPage struct {
 	TotalCount int64          `json:"totalCount"`
 }
 
-func (c *Client) ListSites(ctx context.Context) ([]SiteOverview, error) {
+func (h *NetworkHandler) ListSites(ctx context.Context) ([]SiteOverview, error) {
 	path := "/v1/sites"
 	var page SiteOverviewPage
-	if err := c.Network.Request(ctx, "GET", path, nil, &page); err != nil {
+	if err := h.Request(ctx, "GET", path, nil, &page); err != nil {
 		return nil, err
 	}
 	return page.Data, nil

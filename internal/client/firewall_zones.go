@@ -10,44 +10,44 @@ type FirewallZoneDto struct {
 	NetworkIDs []string `json:"networkIds"`
 }
 
-func (c *Client) CreateFirewallZone(ctx context.Context, siteID string, req *FirewallZoneDto) (*FirewallZoneDto, error) {
+func (h *NetworkHandler) CreateFirewallZone(ctx context.Context, siteID string, req *FirewallZoneDto) (*FirewallZoneDto, error) {
 	path := "/v1/sites/" + siteID + "/firewall/zones"
 	var resp FirewallZoneDto
-	if err := c.Network.Request(ctx, "POST", path, req, &resp); err != nil {
+	if err := h.Request(ctx, "POST", path, req, &resp); err != nil {
 		return nil, err
 	}
 	return &resp, nil
 }
 
-func (c *Client) GetFirewallZone(ctx context.Context, siteID, zoneID string) (*FirewallZoneDto, error) {
+func (h *NetworkHandler) GetFirewallZone(ctx context.Context, siteID, zoneID string) (*FirewallZoneDto, error) {
 	path := "/v1/sites/" + siteID + "/firewall/zones/" + zoneID
 	var resp FirewallZoneDto
-	if err := c.Network.Request(ctx, "GET", path, nil, &resp); err != nil {
+	if err := h.Request(ctx, "GET", path, nil, &resp); err != nil {
 		return nil, err
 	}
 	return &resp, nil
 }
 
-func (c *Client) UpdateFirewallZone(ctx context.Context, siteID, zoneID string, req *FirewallZoneDto) (*FirewallZoneDto, error) {
+func (h *NetworkHandler) UpdateFirewallZone(ctx context.Context, siteID, zoneID string, req *FirewallZoneDto) (*FirewallZoneDto, error) {
 	path := "/v1/sites/" + siteID + "/firewall/zones/" + zoneID
 	var resp FirewallZoneDto
-	if err := c.Network.Request(ctx, "PUT", path, req, &resp); err != nil {
+	if err := h.Request(ctx, "PUT", path, req, &resp); err != nil {
 		return nil, err
 	}
 	return &resp, nil
 }
 
-func (c *Client) DeleteFirewallZone(ctx context.Context, siteID, zoneID string) error {
+func (h *NetworkHandler) DeleteFirewallZone(ctx context.Context, siteID, zoneID string) error {
 	path := "/v1/sites/" + siteID + "/firewall/zones/" + zoneID
-	return c.Network.Request(ctx, "DELETE", path, nil, nil)
+	return h.Request(ctx, "DELETE", path, nil, nil)
 }
 
-func (c *Client) ListFirewallZones(ctx context.Context, siteID string) ([]FirewallZoneDto, error) {
+func (h *NetworkHandler) ListFirewallZones(ctx context.Context, siteID string) ([]FirewallZoneDto, error) {
 	path := "/v1/sites/" + siteID + "/firewall/zones"
 	var resp struct {
 		Data []FirewallZoneDto `json:"data"`
 	}
-	if err := c.Network.Request(ctx, "GET", path, nil, &resp); err != nil {
+	if err := h.Request(ctx, "GET", path, nil, &resp); err != nil {
 		return nil, err
 	}
 	return resp.Data, nil

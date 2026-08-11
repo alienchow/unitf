@@ -16,6 +16,7 @@ import (
 type Client struct {
 	Host       string
 	APIKey     string
+	SiteID     string
 	HTTPClient *http.Client
 	Network    *NetworkHandler
 	Protect    *ProtectHandler
@@ -41,7 +42,7 @@ func IsNotFound(err error) bool {
 	return false
 }
 
-func NewClient(host, apiKey string, insecure bool) (*Client, error) {
+func NewClient(host, apiKey, siteID string, insecure bool) (*Client, error) {
 	if host == "" {
 		return nil, fmt.Errorf("host is required")
 	}
@@ -69,6 +70,7 @@ func NewClient(host, apiKey string, insecure bool) (*Client, error) {
 	c := &Client{
 		Host:       host,
 		APIKey:     apiKey,
+		SiteID:     siteID,
 		HTTPClient: httpClient,
 	}
 	c.Network = &NetworkHandler{client: c}
@@ -115,7 +117,9 @@ func (c *Client) DoRequest(ctx context.Context, method, path string, body interf
 		}
 
 		respBuf, err = io.ReadAll(resp.Body)
-		resp.Body.Close()
+		if closeErr := resp.Body.Close(); closeErr != nil {
+			return fmt.Errorf("failed to close response body: %w", closeErr)
+		}
 		if err != nil {
 			return fmt.Errorf("failed to read response body: %w", err)
 		}
@@ -133,10 +137,9 @@ func (c *Client) DoRequest(ctx context.Context, method, path string, body interf
 			Code    string `json:"code"`
 			Message string `json:"message"`
 		}
-		_ = json.Unmarshal(respBuf, &errResp)
-		msg := errResp.Message
-		if msg == "" {
-			msg = string(respBuf)
+		msg := string(respBuf)
+		if err := json.Unmarshal(respBuf, &errResp); err == nil && errResp.Message != "" {
+			msg = errResp.Message
 		}
 		return &APIError{
 			StatusCode: resp.StatusCode,

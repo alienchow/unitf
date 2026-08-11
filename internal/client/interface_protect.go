@@ -47,4 +47,4 @@ type ProtectClient interface {
 }
 
 // Client implements ProtectClient
-var _ ProtectClient = (*Client)(nil)
+var _ ProtectClient = (*ProtectHandler)(nil)

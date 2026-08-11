@@ -17,7 +17,7 @@ func TestClient_Networks_MassivePayload(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	c, err := client.NewClient(ts.URL, "test-key", true)
+	c, err := client.NewClient(ts.URL, "test-key", "default", true)
 	if err != nil {
 		t.Fatalf("Failed to create client: %v", err)
 	}
@@ -25,7 +25,7 @@ func TestClient_Networks_MassivePayload(t *testing.T) {
 	ctx := context.Background()
 	siteID := "site123"
 
-	nets, err := c.ListNetworks(ctx, siteID)
+	nets, err := c.Network.ListNetworks(ctx, siteID)
 	if err != nil {
 		t.Fatalf("ListNetworks failed: %v", err)
 	}
@@ -37,19 +37,19 @@ func TestClient_Networks_MassivePayload(t *testing.T) {
 	}
 
 	// Test single CRUD operations with massive DTO fields
-	_, err = c.GetNetwork(ctx, siteID, nets[0].ID)
+	_, err = c.Network.GetNetwork(ctx, siteID, nets[0].ID)
 	if err != nil {
 		t.Errorf("GetNetwork failed: %v", err)
 	}
-	_, err = c.CreateNetwork(ctx, siteID, &nets[0])
+	_, err = c.Network.CreateNetwork(ctx, siteID, &nets[0])
 	if err != nil {
 		t.Errorf("CreateNetwork failed: %v", err)
 	}
-	_, err = c.UpdateNetwork(ctx, siteID, nets[0].ID, &nets[0])
+	_, err = c.Network.UpdateNetwork(ctx, siteID, nets[0].ID, &nets[0])
 	if err != nil {
 		t.Errorf("UpdateNetwork failed: %v", err)
 	}
-	err = c.DeleteNetwork(ctx, siteID, nets[0].ID)
+	err = c.Network.DeleteNetwork(ctx, siteID, nets[0].ID)
 	if err != nil {
 		t.Errorf("DeleteNetwork failed: %v", err)
 	}
@@ -63,7 +63,7 @@ func TestClient_FirewallPolicies_MassivePayload(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	c, err := client.NewClient(ts.URL, "test-key", true)
+	c, err := client.NewClient(ts.URL, "test-key", "default", true)
 	if err != nil {
 		t.Fatalf("Failed to create client: %v", err)
 	}
@@ -71,7 +71,7 @@ func TestClient_FirewallPolicies_MassivePayload(t *testing.T) {
 	ctx := context.Background()
 	siteID := "site123"
 
-	pols, err := c.ListFirewallPolicies(ctx, siteID)
+	pols, err := c.Network.ListFirewallPolicies(ctx, siteID)
 	if err != nil {
 		t.Fatalf("ListFirewallPolicies failed: %v", err)
 	}
@@ -79,19 +79,19 @@ func TestClient_FirewallPolicies_MassivePayload(t *testing.T) {
 		t.Fatalf("Expected 30 firewall policies, got %d", len(pols))
 	}
 
-	_, err = c.GetFirewallPolicy(ctx, siteID, pols[0].ID)
+	_, err = c.Network.GetFirewallPolicy(ctx, siteID, pols[0].ID)
 	if err != nil {
 		t.Errorf("GetFirewallPolicy failed: %v", err)
 	}
-	_, err = c.CreateFirewallPolicy(ctx, siteID, &pols[0])
+	_, err = c.Network.CreateFirewallPolicy(ctx, siteID, &pols[0])
 	if err != nil {
 		t.Errorf("CreateFirewallPolicy failed: %v", err)
 	}
-	_, err = c.UpdateFirewallPolicy(ctx, siteID, pols[0].ID, &pols[0])
+	_, err = c.Network.UpdateFirewallPolicy(ctx, siteID, pols[0].ID, &pols[0])
 	if err != nil {
 		t.Errorf("UpdateFirewallPolicy failed: %v", err)
 	}
-	err = c.DeleteFirewallPolicy(ctx, siteID, pols[0].ID)
+	err = c.Network.DeleteFirewallPolicy(ctx, siteID, pols[0].ID)
 	if err != nil {
 		t.Errorf("DeleteFirewallPolicy failed: %v", err)
 	}
@@ -105,7 +105,7 @@ func TestClient_FirewallZones_MassivePayload(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	c, err := client.NewClient(ts.URL, "test-key", true)
+	c, err := client.NewClient(ts.URL, "test-key", "default", true)
 	if err != nil {
 		t.Fatalf("Failed to create client: %v", err)
 	}
@@ -113,7 +113,7 @@ func TestClient_FirewallZones_MassivePayload(t *testing.T) {
 	ctx := context.Background()
 	siteID := "site123"
 
-	zones, err := c.ListFirewallZones(ctx, siteID)
+	zones, err := c.Network.ListFirewallZones(ctx, siteID)
 	if err != nil {
 		t.Fatalf("ListFirewallZones failed: %v", err)
 	}
@@ -121,19 +121,19 @@ func TestClient_FirewallZones_MassivePayload(t *testing.T) {
 		t.Fatalf("Expected 15 zones, got %d", len(zones))
 	}
 
-	_, err = c.GetFirewallZone(ctx, siteID, zones[0].ID)
+	_, err = c.Network.GetFirewallZone(ctx, siteID, zones[0].ID)
 	if err != nil {
 		t.Errorf("GetFirewallZone failed: %v", err)
 	}
-	_, err = c.CreateFirewallZone(ctx, siteID, &zones[0])
+	_, err = c.Network.CreateFirewallZone(ctx, siteID, &zones[0])
 	if err != nil {
 		t.Errorf("CreateFirewallZone failed: %v", err)
 	}
-	_, err = c.UpdateFirewallZone(ctx, siteID, zones[0].ID, &zones[0])
+	_, err = c.Network.UpdateFirewallZone(ctx, siteID, zones[0].ID, &zones[0])
 	if err != nil {
 		t.Errorf("UpdateFirewallZone failed: %v", err)
 	}
-	err = c.DeleteFirewallZone(ctx, siteID, zones[0].ID)
+	err = c.Network.DeleteFirewallZone(ctx, siteID, zones[0].ID)
 	if err != nil {
 		t.Errorf("DeleteFirewallZone failed: %v", err)
 	}
@@ -147,7 +147,7 @@ func TestClient_AclRules_MassivePayload(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	c, err := client.NewClient(ts.URL, "test-key", true)
+	c, err := client.NewClient(ts.URL, "test-key", "default", true)
 	if err != nil {
 		t.Fatalf("Failed to create client: %v", err)
 	}
@@ -155,7 +155,7 @@ func TestClient_AclRules_MassivePayload(t *testing.T) {
 	ctx := context.Background()
 	siteID := "site123"
 
-	acls, err := c.ListAclRules(ctx, siteID)
+	acls, err := c.Network.ListAclRules(ctx, siteID)
 	if err != nil {
 		t.Fatalf("ListAclRules failed: %v", err)
 	}
@@ -163,19 +163,19 @@ func TestClient_AclRules_MassivePayload(t *testing.T) {
 		t.Fatalf("Expected 20 ACL rules, got %d", len(acls))
 	}
 
-	_, err = c.GetAclRule(ctx, siteID, acls[0].ID)
+	_, err = c.Network.GetAclRule(ctx, siteID, acls[0].ID)
 	if err != nil {
 		t.Errorf("GetAclRule failed: %v", err)
 	}
-	_, err = c.CreateAclRule(ctx, siteID, &acls[0])
+	_, err = c.Network.CreateAclRule(ctx, siteID, &acls[0])
 	if err != nil {
 		t.Errorf("CreateAclRule failed: %v", err)
 	}
-	_, err = c.UpdateAclRule(ctx, siteID, acls[0].ID, &acls[0])
+	_, err = c.Network.UpdateAclRule(ctx, siteID, acls[0].ID, &acls[0])
 	if err != nil {
 		t.Errorf("UpdateAclRule failed: %v", err)
 	}
-	err = c.DeleteAclRule(ctx, siteID, acls[0].ID)
+	err = c.Network.DeleteAclRule(ctx, siteID, acls[0].ID)
 	if err != nil {
 		t.Errorf("DeleteAclRule failed: %v", err)
 	}
@@ -189,7 +189,7 @@ func TestClient_Devices_MassivePayload(t *testing.T) {
 	}))
 	defer tsList.Close()
 
-	cList, err := client.NewClient(tsList.URL, "test-key", true)
+	cList, err := client.NewClient(tsList.URL, "test-key", "default", true)
 	if err != nil {
 		t.Fatalf("Failed to create client: %v", err)
 	}
@@ -197,7 +197,7 @@ func TestClient_Devices_MassivePayload(t *testing.T) {
 	ctx := context.Background()
 	siteID := "site123"
 
-	devs, err := cList.ListDevices(ctx, siteID)
+	devs, err := cList.Network.ListDevices(ctx, siteID)
 	if err != nil {
 		t.Fatalf("ListDevices failed: %v", err)
 	}
@@ -211,24 +211,24 @@ func TestClient_Devices_MassivePayload(t *testing.T) {
 	}))
 	defer tsItem.Close()
 
-	cItem, err := client.NewClient(tsItem.URL, "test-key", true)
+	cItem, err := client.NewClient(tsItem.URL, "test-key", "default", true)
 	if err != nil {
 		t.Fatalf("Failed to create client: %v", err)
 	}
 
-	_, err = cItem.GetDevice(ctx, siteID, "74:83:c2:01:11:22")
+	_, err = cItem.Network.GetDevice(ctx, siteID, "74:83:c2:01:11:22")
 	if err != nil {
 		t.Errorf("GetDevice failed: %v", err)
 	}
-	_, err = cItem.UpdateDevice(ctx, siteID, devs[0].ID, &client.DeviceDto{Name: "Updated-USW"})
+	_, err = cItem.Network.UpdateDevice(ctx, siteID, devs[0].ID, &client.DeviceDto{Name: "Updated-USW"})
 	if err != nil {
 		t.Errorf("UpdateDevice failed: %v", err)
 	}
-	err = cItem.AdoptDevice(ctx, siteID, "74:83:c2:01:11:22")
+	err = cItem.Network.AdoptDevice(ctx, siteID, "74:83:c2:01:11:22")
 	if err != nil {
 		t.Errorf("AdoptDevice failed: %v", err)
 	}
-	err = cItem.ForgetDevice(ctx, siteID, "74:83:c2:01:11:22")
+	err = cItem.Network.ForgetDevice(ctx, siteID, "74:83:c2:01:11:22")
 	if err != nil {
 		t.Errorf("ForgetDevice failed: %v", err)
 	}
@@ -242,7 +242,7 @@ func TestClient_TrafficMatching_MassivePayload(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	c, err := client.NewClient(ts.URL, "test-key", true)
+	c, err := client.NewClient(ts.URL, "test-key", "default", true)
 	if err != nil {
 		t.Fatalf("Failed to create client: %v", err)
 	}
@@ -250,7 +250,7 @@ func TestClient_TrafficMatching_MassivePayload(t *testing.T) {
 	ctx := context.Background()
 	siteID := "site123"
 
-	tmls, err := c.ListTrafficMatchingLists(ctx, siteID)
+	tmls, err := c.Network.ListTrafficMatchingLists(ctx, siteID)
 	if err != nil {
 		t.Fatalf("ListTrafficMatchingLists failed: %v", err)
 	}
@@ -258,19 +258,19 @@ func TestClient_TrafficMatching_MassivePayload(t *testing.T) {
 		t.Fatalf("Expected 15 traffic matching lists, got %d", len(tmls))
 	}
 
-	_, err = c.GetTrafficMatchingList(ctx, siteID, tmls[0].ID)
+	_, err = c.Network.GetTrafficMatchingList(ctx, siteID, tmls[0].ID)
 	if err != nil {
 		t.Errorf("GetTrafficMatchingList failed: %v", err)
 	}
-	_, err = c.CreateTrafficMatchingList(ctx, siteID, &tmls[0])
+	_, err = c.Network.CreateTrafficMatchingList(ctx, siteID, &tmls[0])
 	if err != nil {
 		t.Errorf("CreateTrafficMatchingList failed: %v", err)
 	}
-	_, err = c.UpdateTrafficMatchingList(ctx, siteID, tmls[0].ID, &tmls[0])
+	_, err = c.Network.UpdateTrafficMatchingList(ctx, siteID, tmls[0].ID, &tmls[0])
 	if err != nil {
 		t.Errorf("UpdateTrafficMatchingList failed: %v", err)
 	}
-	err = c.DeleteTrafficMatchingList(ctx, siteID, tmls[0].ID)
+	err = c.Network.DeleteTrafficMatchingList(ctx, siteID, tmls[0].ID)
 	if err != nil {
 		t.Errorf("DeleteTrafficMatchingList failed: %v", err)
 	}
@@ -284,7 +284,7 @@ func TestClient_WifiBroadcasts_MassivePayload(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	c, err := client.NewClient(ts.URL, "test-key", true)
+	c, err := client.NewClient(ts.URL, "test-key", "default", true)
 	if err != nil {
 		t.Fatalf("Failed to create client: %v", err)
 	}
@@ -292,7 +292,7 @@ func TestClient_WifiBroadcasts_MassivePayload(t *testing.T) {
 	ctx := context.Background()
 	siteID := "site123"
 
-	wifis, err := c.ListWifiBroadcasts(ctx, siteID)
+	wifis, err := c.Network.ListWifiBroadcasts(ctx, siteID)
 	if err != nil {
 		t.Fatalf("ListWifiBroadcasts failed: %v", err)
 	}
@@ -300,19 +300,19 @@ func TestClient_WifiBroadcasts_MassivePayload(t *testing.T) {
 		t.Fatalf("Expected 10 wifi broadcasts, got %d", len(wifis))
 	}
 
-	_, err = c.GetWifiBroadcast(ctx, siteID, wifis[0].ID)
+	_, err = c.Network.GetWifiBroadcast(ctx, siteID, wifis[0].ID)
 	if err != nil {
 		t.Errorf("GetWifiBroadcast failed: %v", err)
 	}
-	_, err = c.CreateWifiBroadcast(ctx, siteID, &wifis[0])
+	_, err = c.Network.CreateWifiBroadcast(ctx, siteID, &wifis[0])
 	if err != nil {
 		t.Errorf("CreateWifiBroadcast failed: %v", err)
 	}
-	_, err = c.UpdateWifiBroadcast(ctx, siteID, wifis[0].ID, &wifis[0])
+	_, err = c.Network.UpdateWifiBroadcast(ctx, siteID, wifis[0].ID, &wifis[0])
 	if err != nil {
 		t.Errorf("UpdateWifiBroadcast failed: %v", err)
 	}
-	err = c.DeleteWifiBroadcast(ctx, siteID, wifis[0].ID)
+	err = c.Network.DeleteWifiBroadcast(ctx, siteID, wifis[0].ID)
 	if err != nil {
 		t.Errorf("DeleteWifiBroadcast failed: %v", err)
 	}
@@ -325,7 +325,7 @@ func TestClient_NetworkStubs(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	c, err := client.NewClient(ts.URL, "test-key", true)
+	c, err := client.NewClient(ts.URL, "test-key", "default", true)
 	if err != nil {
 		t.Fatalf("Failed to create client: %v", err)
 	}
@@ -333,16 +333,16 @@ func TestClient_NetworkStubs(t *testing.T) {
 	ctx := context.Background()
 	siteID := "site123"
 
-	_, _ = c.ListClients(ctx, siteID)
-	_, _ = c.ListCountries(ctx, siteID)
-	_, _ = c.ListDeviceStatistics(ctx, siteID)
-	_, _ = c.ListDpiApplications(ctx, siteID)
-	_, _ = c.ListDpiCategories(ctx, siteID)
-	_, _ = c.ListLags(ctx, siteID)
-	_, _ = c.ListMcLagDomains(ctx, siteID)
-	_, _ = c.ListRadiusProfiles(ctx, siteID)
-	_, _ = c.ListSwitchStacks(ctx, siteID)
-	_, _ = c.ListVpnServers(ctx, siteID)
-	_, _ = c.ListVpnTunnels(ctx, siteID)
-	_, _ = c.ListWans(ctx, siteID)
+	_, _ = c.Network.ListClients(ctx, siteID)
+	_, _ = c.Network.ListCountries(ctx, siteID)
+	_, _ = c.Network.ListDeviceStatistics(ctx, siteID)
+	_, _ = c.Network.ListDpiApplications(ctx, siteID)
+	_, _ = c.Network.ListDpiCategories(ctx, siteID)
+	_, _ = c.Network.ListLags(ctx, siteID)
+	_, _ = c.Network.ListMcLagDomains(ctx, siteID)
+	_, _ = c.Network.ListRadiusProfiles(ctx, siteID)
+	_, _ = c.Network.ListSwitchStacks(ctx, siteID)
+	_, _ = c.Network.ListVpnServers(ctx, siteID)
+	_, _ = c.Network.ListVpnTunnels(ctx, siteID)
+	_, _ = c.Network.ListWans(ctx, siteID)
 }

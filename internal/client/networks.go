@@ -62,44 +62,44 @@ type WANNATOutboundConfig struct {
 	WanIP string `json:"wanIp,omitempty"`
 }
 
-func (c *Client) CreateNetwork(ctx context.Context, siteID string, req *NetworkDto) (*NetworkDto, error) {
+func (h *NetworkHandler) CreateNetwork(ctx context.Context, siteID string, req *NetworkDto) (*NetworkDto, error) {
 	path := "/v1/sites/" + siteID + "/networks"
 	var resp NetworkDto
-	if err := c.Network.Request(ctx, "POST", path, req, &resp); err != nil {
+	if err := h.Request(ctx, "POST", path, req, &resp); err != nil {
 		return nil, err
 	}
 	return &resp, nil
 }
 
-func (c *Client) GetNetwork(ctx context.Context, siteID, networkID string) (*NetworkDto, error) {
+func (h *NetworkHandler) GetNetwork(ctx context.Context, siteID, networkID string) (*NetworkDto, error) {
 	path := "/v1/sites/" + siteID + "/networks/" + networkID
 	var resp NetworkDto
-	if err := c.Network.Request(ctx, "GET", path, nil, &resp); err != nil {
+	if err := h.Request(ctx, "GET", path, nil, &resp); err != nil {
 		return nil, err
 	}
 	return &resp, nil
 }
 
-func (c *Client) UpdateNetwork(ctx context.Context, siteID, networkID string, req *NetworkDto) (*NetworkDto, error) {
+func (h *NetworkHandler) UpdateNetwork(ctx context.Context, siteID, networkID string, req *NetworkDto) (*NetworkDto, error) {
 	path := "/v1/sites/" + siteID + "/networks/" + networkID
 	var resp NetworkDto
-	if err := c.Network.Request(ctx, "PUT", path, req, &resp); err != nil {
+	if err := h.Request(ctx, "PUT", path, req, &resp); err != nil {
 		return nil, err
 	}
 	return &resp, nil
 }
 
-func (c *Client) DeleteNetwork(ctx context.Context, siteID, networkID string) error {
+func (h *NetworkHandler) DeleteNetwork(ctx context.Context, siteID, networkID string) error {
 	path := "/v1/sites/" + siteID + "/networks/" + networkID
-	return c.Network.Request(ctx, "DELETE", path, nil, nil)
+	return h.Request(ctx, "DELETE", path, nil, nil)
 }
 
-func (c *Client) ListNetworks(ctx context.Context, siteID string) ([]NetworkDto, error) {
+func (h *NetworkHandler) ListNetworks(ctx context.Context, siteID string) ([]NetworkDto, error) {
 	path := "/v1/sites/" + siteID + "/networks"
 	var resp struct {
 		Data []NetworkDto `json:"data"`
 	}
-	if err := c.Network.Request(ctx, "GET", path, nil, &resp); err != nil {
+	if err := h.Request(ctx, "GET", path, nil, &resp); err != nil {
 		return nil, err
 	}
 	return resp.Data, nil

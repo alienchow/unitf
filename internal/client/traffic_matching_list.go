@@ -12,44 +12,44 @@ type TrafficMatchingListDto struct {
 	Type      string   `json:"type"` // IPV4, IPV6, PORT
 }
 
-func (c *Client) CreateTrafficMatchingList(ctx context.Context, siteID string, req *TrafficMatchingListDto) (*TrafficMatchingListDto, error) {
+func (h *NetworkHandler) CreateTrafficMatchingList(ctx context.Context, siteID string, req *TrafficMatchingListDto) (*TrafficMatchingListDto, error) {
 	path := "/v1/sites/" + siteID + "/traffic-matching-lists"
 	var resp TrafficMatchingListDto
-	if err := c.Network.Request(ctx, "POST", path, req, &resp); err != nil {
+	if err := h.Request(ctx, "POST", path, req, &resp); err != nil {
 		return nil, err
 	}
 	return &resp, nil
 }
 
-func (c *Client) GetTrafficMatchingList(ctx context.Context, siteID, listID string) (*TrafficMatchingListDto, error) {
+func (h *NetworkHandler) GetTrafficMatchingList(ctx context.Context, siteID, listID string) (*TrafficMatchingListDto, error) {
 	path := "/v1/sites/" + siteID + "/traffic-matching-lists/" + listID
 	var resp TrafficMatchingListDto
-	if err := c.Network.Request(ctx, "GET", path, nil, &resp); err != nil {
+	if err := h.Request(ctx, "GET", path, nil, &resp); err != nil {
 		return nil, err
 	}
 	return &resp, nil
 }
 
-func (c *Client) UpdateTrafficMatchingList(ctx context.Context, siteID, listID string, req *TrafficMatchingListDto) (*TrafficMatchingListDto, error) {
+func (h *NetworkHandler) UpdateTrafficMatchingList(ctx context.Context, siteID, listID string, req *TrafficMatchingListDto) (*TrafficMatchingListDto, error) {
 	path := "/v1/sites/" + siteID + "/traffic-matching-lists/" + listID
 	var resp TrafficMatchingListDto
-	if err := c.Network.Request(ctx, "PUT", path, req, &resp); err != nil {
+	if err := h.Request(ctx, "PUT", path, req, &resp); err != nil {
 		return nil, err
 	}
 	return &resp, nil
 }
 
-func (c *Client) DeleteTrafficMatchingList(ctx context.Context, siteID, listID string) error {
+func (h *NetworkHandler) DeleteTrafficMatchingList(ctx context.Context, siteID, listID string) error {
 	path := "/v1/sites/" + siteID + "/traffic-matching-lists/" + listID
-	return c.Network.Request(ctx, "DELETE", path, nil, nil)
+	return h.Request(ctx, "DELETE", path, nil, nil)
 }
 
-func (c *Client) ListTrafficMatchingLists(ctx context.Context, siteID string) ([]TrafficMatchingListDto, error) {
+func (h *NetworkHandler) ListTrafficMatchingLists(ctx context.Context, siteID string) ([]TrafficMatchingListDto, error) {
 	path := "/v1/sites/" + siteID + "/traffic-matching-lists"
 	var resp struct {
 		Data []TrafficMatchingListDto `json:"data"`
 	}
-	if err := c.Network.Request(ctx, "GET", path, nil, &resp); err != nil {
+	if err := h.Request(ctx, "GET", path, nil, &resp); err != nil {
 		return nil, err
 	}
 	return resp.Data, nil

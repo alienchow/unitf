@@ -25,7 +25,7 @@ func TestClient_DoRequest_Success(t *testing.T) {
 	defer ts.Close()
 
 	// Initialize the client pointing to the mock server
-	c, err := client.NewClient(ts.URL, "test-api-key", true)
+	c, err := client.NewClient(ts.URL, "test-api-key", "default", true)
 	if err != nil {
 		t.Fatalf("Expected no error creating client, got: %v", err)
 	}
@@ -59,7 +59,7 @@ func TestClient_DoRequest_Error(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	c, err := client.NewClient(ts.URL, "test-api-key", true)
+	c, err := client.NewClient(ts.URL, "test-api-key", "default", true)
 	if err != nil {
 		t.Fatalf("Expected no error creating client, got: %v", err)
 	}
@@ -85,12 +85,12 @@ func TestClient_GetNetwork(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	c, err := client.NewClient(ts.URL, "test-key", true)
+	c, err := client.NewClient(ts.URL, "test-key", "default", true)
 	if err != nil {
 		t.Fatalf("Expected no error creating client, got: %v", err)
 	}
 
-	net, err := c.GetNetwork(context.Background(), "default", "net-id")
+	net, err := c.Network.GetNetwork(context.Background(), "default", "net-id")
 	if err != nil {
 		t.Fatalf("Expected no error calling GetNetwork, got: %v", err)
 	}

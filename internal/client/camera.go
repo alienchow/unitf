@@ -22,19 +22,19 @@ type CameraSmartDetect struct {
 	ObjectTypes []string `json:"objectTypes"`
 }
 
-func (c *Client) GetCamera(ctx context.Context, cameraID string) (*CameraDto, error) {
+func (h *ProtectHandler) GetCamera(ctx context.Context, cameraID string) (*CameraDto, error) {
 	path := "/v1/cameras/" + cameraID
 	var resp CameraDto
-	if err := c.Protect.Request(ctx, "GET", path, nil, &resp); err != nil {
+	if err := h.Request(ctx, "GET", path, nil, &resp); err != nil {
 		return nil, err
 	}
 	return &resp, nil
 }
 
-func (c *Client) UpdateCamera(ctx context.Context, cameraID string, req *CameraDto) (*CameraDto, error) {
+func (h *ProtectHandler) UpdateCamera(ctx context.Context, cameraID string, req *CameraDto) (*CameraDto, error) {
 	path := "/v1/cameras/" + cameraID
 	var resp CameraDto
-	if err := c.Protect.Request(ctx, "PATCH", path, req, &resp); err != nil {
+	if err := h.Request(ctx, "PATCH", path, req, &resp); err != nil {
 		return nil, err
 	}
 	return &resp, nil

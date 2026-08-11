@@ -9,19 +9,19 @@ type FirewallPolicyOrderingDto struct {
 	AfterSystemDefined  []string `json:"afterSystemDefined,omitempty"`
 }
 
-func (c *Client) GetFirewallPolicyOrdering(ctx context.Context, siteID, fromZoneID, toZoneID string) (*FirewallPolicyOrderingDto, error) {
+func (h *NetworkHandler) GetFirewallPolicyOrdering(ctx context.Context, siteID, fromZoneID, toZoneID string) (*FirewallPolicyOrderingDto, error) {
 	path := "/v1/sites/" + siteID + "/firewall/zones/" + fromZoneID + "/policy-ordering/" + toZoneID
 	var resp FirewallPolicyOrderingDto
-	if err := c.Network.Request(ctx, "GET", path, nil, &resp); err != nil {
+	if err := h.Request(ctx, "GET", path, nil, &resp); err != nil {
 		return nil, err
 	}
 	return &resp, nil
 }
 
-func (c *Client) UpdateFirewallPolicyOrdering(ctx context.Context, siteID, fromZoneID, toZoneID string, req *FirewallPolicyOrderingDto) (*FirewallPolicyOrderingDto, error) {
+func (h *NetworkHandler) UpdateFirewallPolicyOrdering(ctx context.Context, siteID, fromZoneID, toZoneID string, req *FirewallPolicyOrderingDto) (*FirewallPolicyOrderingDto, error) {
 	path := "/v1/sites/" + siteID + "/firewall/zones/" + fromZoneID + "/policy-ordering/" + toZoneID
 	var resp FirewallPolicyOrderingDto
-	if err := c.Network.Request(ctx, "PUT", path, req, &resp); err != nil {
+	if err := h.Request(ctx, "PUT", path, req, &resp); err != nil {
 		return nil, err
 	}
 	return &resp, nil

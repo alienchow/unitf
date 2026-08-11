@@ -16,10 +16,10 @@ type WanOverviewPage struct {
 	TotalCount int64         `json:"totalCount"`
 }
 
-func (c *Client) ListWans(ctx context.Context, siteID string) ([]WanOverview, error) {
+func (h *NetworkHandler) ListWans(ctx context.Context, siteID string) ([]WanOverview, error) {
 	path := "/v1/sites/" + siteID + "/wans"
 	var page WanOverviewPage
-	if err := c.Network.Request(ctx, "GET", path, nil, &page); err != nil {
+	if err := h.Request(ctx, "GET", path, nil, &page); err != nil {
 		return nil, err
 	}
 	return page.Data, nil

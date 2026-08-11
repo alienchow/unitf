@@ -4,176 +4,60 @@ import (
 	"context"
 )
 
-func (c *Client) ListCameras(ctx context.Context) ([]CameraDto, error) {
-	path := "/v1/cameras"
+func (h *ProtectHandler) listIDs(ctx context.Context, path string) ([]struct{ ID string }, error) {
+	var resp []struct{ ID string }
+	err := h.Request(ctx, "GET", path, nil, &resp)
+	return resp, err
+}
+
+func (h *ProtectHandler) ListCameras(ctx context.Context) ([]CameraDto, error) {
 	var resp []CameraDto
-	if err := c.Protect.Request(ctx, "GET", path, nil, &resp); err != nil {
+	if err := h.Request(ctx, "GET", "/v1/cameras", nil, &resp); err != nil {
 		return nil, err
 	}
 	return resp, nil
 }
 
-func (c *Client) ListNvr(ctx context.Context) ([]struct{ ID string }, error) {
-	path := "/v1/nvrs"
-	var resp []struct {
-		ID string `json:"id"`
-	}
-	if err := c.Protect.Request(ctx, "GET", path, nil, &resp); err != nil {
-		return nil, err
-	}
-	var out []struct{ ID string }
-	for _, v := range resp {
-		out = append(out, struct{ ID string }{ID: v.ID})
-	}
-	return out, nil
+func (h *ProtectHandler) ListNvr(ctx context.Context) ([]struct{ ID string }, error) {
+	return h.listIDs(ctx, "/v1/nvrs")
 }
 
-func (c *Client) ListSensors(ctx context.Context) ([]struct{ ID string }, error) {
-	path := "/v1/sensors"
-	var resp []struct {
-		ID string `json:"id"`
-	}
-	if err := c.Protect.Request(ctx, "GET", path, nil, &resp); err != nil {
-		return nil, err
-	}
-	var out []struct{ ID string }
-	for _, v := range resp {
-		out = append(out, struct{ ID string }{ID: v.ID})
-	}
-	return out, nil
+func (h *ProtectHandler) ListSensors(ctx context.Context) ([]struct{ ID string }, error) {
+	return h.listIDs(ctx, "/v1/sensors")
 }
 
-func (c *Client) ListLights(ctx context.Context) ([]struct{ ID string }, error) {
-	path := "/v1/lights"
-	var resp []struct {
-		ID string `json:"id"`
-	}
-	if err := c.Protect.Request(ctx, "GET", path, nil, &resp); err != nil {
-		return nil, err
-	}
-	var out []struct{ ID string }
-	for _, v := range resp {
-		out = append(out, struct{ ID string }{ID: v.ID})
-	}
-	return out, nil
+func (h *ProtectHandler) ListLights(ctx context.Context) ([]struct{ ID string }, error) {
+	return h.listIDs(ctx, "/v1/lights")
 }
 
-func (c *Client) ListSpeakers(ctx context.Context) ([]struct{ ID string }, error) {
-	path := "/v1/speakers"
-	var resp []struct {
-		ID string `json:"id"`
-	}
-	if err := c.Protect.Request(ctx, "GET", path, nil, &resp); err != nil {
-		return nil, err
-	}
-	var out []struct{ ID string }
-	for _, v := range resp {
-		out = append(out, struct{ ID string }{ID: v.ID})
-	}
-	return out, nil
+func (h *ProtectHandler) ListSpeakers(ctx context.Context) ([]struct{ ID string }, error) {
+	return h.listIDs(ctx, "/v1/speakers")
 }
 
-func (c *Client) ListLiveviews(ctx context.Context) ([]struct{ ID string }, error) {
-	path := "/v1/liveviews"
-	var resp []struct {
-		ID string `json:"id"`
-	}
-	if err := c.Protect.Request(ctx, "GET", path, nil, &resp); err != nil {
-		return nil, err
-	}
-	var out []struct{ ID string }
-	for _, v := range resp {
-		out = append(out, struct{ ID string }{ID: v.ID})
-	}
-	return out, nil
+func (h *ProtectHandler) ListLiveviews(ctx context.Context) ([]struct{ ID string }, error) {
+	return h.listIDs(ctx, "/v1/liveviews")
 }
 
-func (c *Client) ListRelays(ctx context.Context) ([]struct{ ID string }, error) {
-	path := "/v1/relays"
-	var resp []struct {
-		ID string `json:"id"`
-	}
-	if err := c.Protect.Request(ctx, "GET", path, nil, &resp); err != nil {
-		return nil, err
-	}
-	var out []struct{ ID string }
-	for _, v := range resp {
-		out = append(out, struct{ ID string }{ID: v.ID})
-	}
-	return out, nil
+func (h *ProtectHandler) ListRelays(ctx context.Context) ([]struct{ ID string }, error) {
+	return h.listIDs(ctx, "/v1/relays")
 }
 
-func (c *Client) ListSirens(ctx context.Context) ([]struct{ ID string }, error) {
-	path := "/v1/sirens"
-	var resp []struct {
-		ID string `json:"id"`
-	}
-	if err := c.Protect.Request(ctx, "GET", path, nil, &resp); err != nil {
-		return nil, err
-	}
-	var out []struct{ ID string }
-	for _, v := range resp {
-		out = append(out, struct{ ID string }{ID: v.ID})
-	}
-	return out, nil
+func (h *ProtectHandler) ListSirens(ctx context.Context) ([]struct{ ID string }, error) {
+	return h.listIDs(ctx, "/v1/sirens")
 }
 
-func (c *Client) ListChimes(ctx context.Context) ([]struct{ ID string }, error) {
-	path := "/v1/chimes"
-	var resp []struct {
-		ID string `json:"id"`
-	}
-	if err := c.Protect.Request(ctx, "GET", path, nil, &resp); err != nil {
-		return nil, err
-	}
-	var out []struct{ ID string }
-	for _, v := range resp {
-		out = append(out, struct{ ID string }{ID: v.ID})
-	}
-	return out, nil
+func (h *ProtectHandler) ListChimes(ctx context.Context) ([]struct{ ID string }, error) {
+	return h.listIDs(ctx, "/v1/chimes")
 }
 
-func (c *Client) ListViewers(ctx context.Context) ([]struct{ ID string }, error) {
-	path := "/v1/viewers"
-	var resp []struct {
-		ID string `json:"id"`
-	}
-	if err := c.Protect.Request(ctx, "GET", path, nil, &resp); err != nil {
-		return nil, err
-	}
-	var out []struct{ ID string }
-	for _, v := range resp {
-		out = append(out, struct{ ID string }{ID: v.ID})
-	}
-	return out, nil
+func (h *ProtectHandler) ListViewers(ctx context.Context) ([]struct{ ID string }, error) {
+	return h.listIDs(ctx, "/v1/viewers")
 }
 
-func (c *Client) ListFobs(ctx context.Context) ([]struct{ ID string }, error) {
-	path := "/v1/fobs"
-	var resp []struct {
-		ID string `json:"id"`
-	}
-	if err := c.Protect.Request(ctx, "GET", path, nil, &resp); err != nil {
-		return nil, err
-	}
-	var out []struct{ ID string }
-	for _, v := range resp {
-		out = append(out, struct{ ID string }{ID: v.ID})
-	}
-	return out, nil
+func (h *ProtectHandler) ListFobs(ctx context.Context) ([]struct{ ID string }, error) {
+	return h.listIDs(ctx, "/v1/fobs")
 }
 
-func (c *Client) ListUsers(ctx context.Context) ([]struct{ ID string }, error) {
-	path := "/v1/users"
-	var resp []struct {
-		ID string `json:"id"`
-	}
-	if err := c.Protect.Request(ctx, "GET", path, nil, &resp); err != nil {
-		return nil, err
-	}
-	var out []struct{ ID string }
-	for _, v := range resp {
-		out = append(out, struct{ ID string }{ID: v.ID})
-	}
-	return out, nil
+func (h *ProtectHandler) ListUsers(ctx context.Context) ([]struct{ ID string }, error) {
+	return h.listIDs(ctx, "/v1/users")
 }

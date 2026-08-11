@@ -107,12 +107,12 @@ func TestClient_CreateDnsPolicy_Types(t *testing.T) {
 			}))
 			defer ts.Close()
 
-			c, err := client.NewClient(ts.URL, "test-key", true)
+			c, err := client.NewClient(ts.URL, "test-key", "default", true)
 			if err != nil {
 				t.Fatalf("Failed to create client: %v", err)
 			}
 
-			res, err := c.CreateDnsPolicy(context.Background(), "site123", tt.req)
+			res, err := c.Network.CreateDnsPolicy(context.Background(), "site123", tt.req)
 			if err != nil {
 				t.Fatalf("CreateDnsPolicy failed for %s: %v", tt.name, err)
 			}
@@ -139,12 +139,12 @@ func TestClient_GetDnsPolicy_Success(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	c, err := client.NewClient(ts.URL, "test-key", true)
+	c, err := client.NewClient(ts.URL, "test-key", "default", true)
 	if err != nil {
 		t.Fatalf("Failed to create client: %v", err)
 	}
 
-	res, err := c.GetDnsPolicy(context.Background(), "site123", "policy123")
+	res, err := c.Network.GetDnsPolicy(context.Background(), "site123", "policy123")
 	if err != nil {
 		t.Fatalf("GetDnsPolicy returned error: %v", err)
 	}
@@ -160,12 +160,12 @@ func TestClient_GetDnsPolicy_NotFound(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	c, err := client.NewClient(ts.URL, "test-key", true)
+	c, err := client.NewClient(ts.URL, "test-key", "default", true)
 	if err != nil {
 		t.Fatalf("Failed to create client: %v", err)
 	}
 
-	_, err = c.GetDnsPolicy(context.Background(), "site123", "nonexistent")
+	_, err = c.Network.GetDnsPolicy(context.Background(), "site123", "nonexistent")
 	if err == nil {
 		t.Fatal("Expected error for 404 response, got nil")
 	}
@@ -183,12 +183,12 @@ func TestClient_CreateDnsPolicy_Error400(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	c, err := client.NewClient(ts.URL, "test-key", true)
+	c, err := client.NewClient(ts.URL, "test-key", "default", true)
 	if err != nil {
 		t.Fatalf("Failed to create client: %v", err)
 	}
 
-	_, err = c.CreateDnsPolicy(context.Background(), "site123", &client.DnsPolicyDto{})
+	_, err = c.Network.CreateDnsPolicy(context.Background(), "site123", &client.DnsPolicyDto{})
 	if err == nil {
 		t.Fatal("Expected error for 400 response, got nil")
 	}
@@ -203,12 +203,12 @@ func TestClient_CreateDnsPolicy_Error500(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	c, err := client.NewClient(ts.URL, "test-key", true)
+	c, err := client.NewClient(ts.URL, "test-key", "default", true)
 	if err != nil {
 		t.Fatalf("Failed to create client: %v", err)
 	}
 
-	_, err = c.CreateDnsPolicy(context.Background(), "site123", &client.DnsPolicyDto{})
+	_, err = c.Network.CreateDnsPolicy(context.Background(), "site123", &client.DnsPolicyDto{})
 	if err == nil {
 		t.Fatal("Expected error for 500 server error, got nil")
 	}
@@ -223,12 +223,12 @@ func TestClient_GetDnsPolicy_MalformedJSON(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	c, err := client.NewClient(ts.URL, "test-key", true)
+	c, err := client.NewClient(ts.URL, "test-key", "default", true)
 	if err != nil {
 		t.Fatalf("Failed to create client: %v", err)
 	}
 
-	_, err = c.GetDnsPolicy(context.Background(), "site123", "policy123")
+	_, err = c.Network.GetDnsPolicy(context.Background(), "site123", "policy123")
 	if err == nil {
 		t.Fatal("Expected JSON decode error for malformed JSON response, got nil")
 	}
@@ -246,7 +246,7 @@ func TestClient_UpdateDnsPolicy(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	c, err := client.NewClient(ts.URL, "test-key", true)
+	c, err := client.NewClient(ts.URL, "test-key", "default", true)
 	if err != nil {
 		t.Fatalf("Failed to create client: %v", err)
 	}
@@ -259,7 +259,7 @@ func TestClient_UpdateDnsPolicy(t *testing.T) {
 		TTLSeconds:  300,
 	}
 
-	res, err := c.UpdateDnsPolicy(context.Background(), "site123", "policy123", req)
+	res, err := c.Network.UpdateDnsPolicy(context.Background(), "site123", "policy123", req)
 	if err != nil {
 		t.Fatalf("UpdateDnsPolicy returned error: %v", err)
 	}
@@ -277,12 +277,12 @@ func TestClient_DeleteDnsPolicy(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	c, err := client.NewClient(ts.URL, "test-key", true)
+	c, err := client.NewClient(ts.URL, "test-key", "default", true)
 	if err != nil {
 		t.Fatalf("Failed to create client: %v", err)
 	}
 
-	err = c.DeleteDnsPolicy(context.Background(), "site123", "policy123")
+	err = c.Network.DeleteDnsPolicy(context.Background(), "site123", "policy123")
 	if err != nil {
 		t.Fatalf("DeleteDnsPolicy returned error: %v", err)
 	}
@@ -300,12 +300,12 @@ func TestClient_ListDnsPolicies(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	c, err := client.NewClient(ts.URL, "test-key", true)
+	c, err := client.NewClient(ts.URL, "test-key", "default", true)
 	if err != nil {
 		t.Fatalf("Failed to create client: %v", err)
 	}
 
-	items, err := c.ListDnsPolicies(context.Background(), "site123")
+	items, err := c.Network.ListDnsPolicies(context.Background(), "site123")
 	if err != nil {
 		t.Fatalf("ListDnsPolicies returned error: %v", err)
 	}
