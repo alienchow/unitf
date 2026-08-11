@@ -12,18 +12,18 @@ type SensorDto struct {
 }
 
 func (c *Client) GetSensor(ctx context.Context, sensorID string) (*SensorDto, error) {
-	path := "/proxy/protect/integration/v1/sensors/" + sensorID
+	path := "/v1/sensors/" + sensorID
 	var resp SensorDto
-	if err := c.DoRequest(ctx, "GET", path, nil, &resp); err != nil {
+	if err := c.Protect.Request(ctx, "GET", path, nil, &resp); err != nil {
 		return nil, err
 	}
 	return &resp, nil
 }
 
 func (c *Client) UpdateSensor(ctx context.Context, sensorID string, req *SensorDto) (*SensorDto, error) {
-	path := "/proxy/protect/integration/v1/sensors/" + sensorID
+	path := "/v1/sensors/" + sensorID
 	var resp SensorDto
-	if err := c.DoRequest(ctx, "PATCH", path, req, &resp); err != nil {
+	if err := c.Protect.Request(ctx, "PATCH", path, req, &resp); err != nil {
 		return nil, err
 	}
 	return &resp, nil

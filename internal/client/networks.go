@@ -63,43 +63,43 @@ type WANNATOutboundConfig struct {
 }
 
 func (c *Client) CreateNetwork(ctx context.Context, siteID string, req *NetworkDto) (*NetworkDto, error) {
-	path := "/proxy/network/integration/v1/sites/" + siteID + "/networks"
+	path := "/v1/sites/" + siteID + "/networks"
 	var resp NetworkDto
-	if err := c.DoRequest(ctx, "POST", path, req, &resp); err != nil {
+	if err := c.Network.Request(ctx, "POST", path, req, &resp); err != nil {
 		return nil, err
 	}
 	return &resp, nil
 }
 
 func (c *Client) GetNetwork(ctx context.Context, siteID, networkID string) (*NetworkDto, error) {
-	path := "/proxy/network/integration/v1/sites/" + siteID + "/networks/" + networkID
+	path := "/v1/sites/" + siteID + "/networks/" + networkID
 	var resp NetworkDto
-	if err := c.DoRequest(ctx, "GET", path, nil, &resp); err != nil {
+	if err := c.Network.Request(ctx, "GET", path, nil, &resp); err != nil {
 		return nil, err
 	}
 	return &resp, nil
 }
 
 func (c *Client) UpdateNetwork(ctx context.Context, siteID, networkID string, req *NetworkDto) (*NetworkDto, error) {
-	path := "/proxy/network/integration/v1/sites/" + siteID + "/networks/" + networkID
+	path := "/v1/sites/" + siteID + "/networks/" + networkID
 	var resp NetworkDto
-	if err := c.DoRequest(ctx, "PUT", path, req, &resp); err != nil {
+	if err := c.Network.Request(ctx, "PUT", path, req, &resp); err != nil {
 		return nil, err
 	}
 	return &resp, nil
 }
 
 func (c *Client) DeleteNetwork(ctx context.Context, siteID, networkID string) error {
-	path := "/proxy/network/integration/v1/sites/" + siteID + "/networks/" + networkID
-	return c.DoRequest(ctx, "DELETE", path, nil, nil)
+	path := "/v1/sites/" + siteID + "/networks/" + networkID
+	return c.Network.Request(ctx, "DELETE", path, nil, nil)
 }
 
 func (c *Client) ListNetworks(ctx context.Context, siteID string) ([]NetworkDto, error) {
-	path := "/proxy/network/integration/v1/sites/" + siteID + "/networks"
+	path := "/v1/sites/" + siteID + "/networks"
 	var resp struct {
 		Data []NetworkDto `json:"data"`
 	}
-	if err := c.DoRequest(ctx, "GET", path, nil, &resp); err != nil {
+	if err := c.Network.Request(ctx, "GET", path, nil, &resp); err != nil {
 		return nil, err
 	}
 	return resp.Data, nil

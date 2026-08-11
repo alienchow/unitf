@@ -11,7 +11,7 @@ type FirewallZoneDto struct {
 }
 
 func (c *Client) CreateFirewallZone(ctx context.Context, siteID string, req *FirewallZoneDto) (*FirewallZoneDto, error) {
-	path := "/proxy/network/integration/v1/sites/" + siteID + "/firewall/zones"
+	path := "/v1/sites/" + siteID + "/firewall/zones"
 	var resp FirewallZoneDto
 	if err := c.DoRequest(ctx, "POST", path, req, &resp); err != nil {
 		return nil, err
@@ -20,7 +20,7 @@ func (c *Client) CreateFirewallZone(ctx context.Context, siteID string, req *Fir
 }
 
 func (c *Client) GetFirewallZone(ctx context.Context, siteID, zoneID string) (*FirewallZoneDto, error) {
-	path := "/proxy/network/integration/v1/sites/" + siteID + "/firewall/zones/" + zoneID
+	path := "/v1/sites/" + siteID + "/firewall/zones/" + zoneID
 	var resp FirewallZoneDto
 	if err := c.DoRequest(ctx, "GET", path, nil, &resp); err != nil {
 		return nil, err
@@ -29,7 +29,7 @@ func (c *Client) GetFirewallZone(ctx context.Context, siteID, zoneID string) (*F
 }
 
 func (c *Client) UpdateFirewallZone(ctx context.Context, siteID, zoneID string, req *FirewallZoneDto) (*FirewallZoneDto, error) {
-	path := "/proxy/network/integration/v1/sites/" + siteID + "/firewall/zones/" + zoneID
+	path := "/v1/sites/" + siteID + "/firewall/zones/" + zoneID
 	var resp FirewallZoneDto
 	if err := c.DoRequest(ctx, "PUT", path, req, &resp); err != nil {
 		return nil, err
@@ -38,12 +38,12 @@ func (c *Client) UpdateFirewallZone(ctx context.Context, siteID, zoneID string, 
 }
 
 func (c *Client) DeleteFirewallZone(ctx context.Context, siteID, zoneID string) error {
-	path := "/proxy/network/integration/v1/sites/" + siteID + "/firewall/zones/" + zoneID
+	path := "/v1/sites/" + siteID + "/firewall/zones/" + zoneID
 	return c.DoRequest(ctx, "DELETE", path, nil, nil)
 }
 
 func (c *Client) ListFirewallZones(ctx context.Context, siteID string) ([]FirewallZoneDto, error) {
-	path := "/proxy/network/integration/v1/sites/" + siteID + "/firewall/zones"
+	path := "/v1/sites/" + siteID + "/firewall/zones"
 	var resp struct {
 		Data []FirewallZoneDto `json:"data"`
 	}

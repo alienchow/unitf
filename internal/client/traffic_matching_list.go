@@ -13,7 +13,7 @@ type TrafficMatchingListDto struct {
 }
 
 func (c *Client) CreateTrafficMatchingList(ctx context.Context, siteID string, req *TrafficMatchingListDto) (*TrafficMatchingListDto, error) {
-	path := "/proxy/network/integration/v1/sites/" + siteID + "/traffic-matching-lists"
+	path := "/v1/sites/" + siteID + "/traffic-matching-lists"
 	var resp TrafficMatchingListDto
 	if err := c.DoRequest(ctx, "POST", path, req, &resp); err != nil {
 		return nil, err
@@ -22,7 +22,7 @@ func (c *Client) CreateTrafficMatchingList(ctx context.Context, siteID string, r
 }
 
 func (c *Client) GetTrafficMatchingList(ctx context.Context, siteID, listID string) (*TrafficMatchingListDto, error) {
-	path := "/proxy/network/integration/v1/sites/" + siteID + "/traffic-matching-lists/" + listID
+	path := "/v1/sites/" + siteID + "/traffic-matching-lists/" + listID
 	var resp TrafficMatchingListDto
 	if err := c.DoRequest(ctx, "GET", path, nil, &resp); err != nil {
 		return nil, err
@@ -31,7 +31,7 @@ func (c *Client) GetTrafficMatchingList(ctx context.Context, siteID, listID stri
 }
 
 func (c *Client) UpdateTrafficMatchingList(ctx context.Context, siteID, listID string, req *TrafficMatchingListDto) (*TrafficMatchingListDto, error) {
-	path := "/proxy/network/integration/v1/sites/" + siteID + "/traffic-matching-lists/" + listID
+	path := "/v1/sites/" + siteID + "/traffic-matching-lists/" + listID
 	var resp TrafficMatchingListDto
 	if err := c.DoRequest(ctx, "PUT", path, req, &resp); err != nil {
 		return nil, err
@@ -40,12 +40,12 @@ func (c *Client) UpdateTrafficMatchingList(ctx context.Context, siteID, listID s
 }
 
 func (c *Client) DeleteTrafficMatchingList(ctx context.Context, siteID, listID string) error {
-	path := "/proxy/network/integration/v1/sites/" + siteID + "/traffic-matching-lists/" + listID
+	path := "/v1/sites/" + siteID + "/traffic-matching-lists/" + listID
 	return c.DoRequest(ctx, "DELETE", path, nil, nil)
 }
 
 func (c *Client) ListTrafficMatchingLists(ctx context.Context, siteID string) ([]TrafficMatchingListDto, error) {
-	path := "/proxy/network/integration/v1/sites/" + siteID + "/traffic-matching-lists"
+	path := "/v1/sites/" + siteID + "/traffic-matching-lists"
 	var resp struct {
 		Data []TrafficMatchingListDto `json:"data"`
 	}

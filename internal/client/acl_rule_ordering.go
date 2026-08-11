@@ -9,7 +9,7 @@ type AclRuleOrderingDto struct {
 }
 
 func (c *Client) GetAclRuleOrdering(ctx context.Context, siteID string) (*AclRuleOrderingDto, error) {
-	path := "/proxy/network/integration/v1/sites/" + siteID + "/firewall/acl-rules/ordering"
+	path := "/v1/sites/" + siteID + "/firewall/acl-rules/ordering"
 	var resp AclRuleOrderingDto
 	if err := c.DoRequest(ctx, "GET", path, nil, &resp); err != nil {
 		return nil, err
@@ -18,7 +18,7 @@ func (c *Client) GetAclRuleOrdering(ctx context.Context, siteID string) (*AclRul
 }
 
 func (c *Client) UpdateAclRuleOrdering(ctx context.Context, siteID string, req *AclRuleOrderingDto) (*AclRuleOrderingDto, error) {
-	path := "/proxy/network/integration/v1/sites/" + siteID + "/firewall/acl-rules/ordering"
+	path := "/v1/sites/" + siteID + "/firewall/acl-rules/ordering"
 	var resp AclRuleOrderingDto
 	if err := c.DoRequest(ctx, "PUT", path, req, &resp); err != nil {
 		return nil, err

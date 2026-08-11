@@ -14,7 +14,7 @@ type DnsPolicyDto struct {
 }
 
 func (c *Client) CreateDnsPolicy(ctx context.Context, siteID string, req *DnsPolicyDto) (*DnsPolicyDto, error) {
-	path := "/proxy/network/integration/v1/sites/" + siteID + "/dns-policies"
+	path := "/v1/sites/" + siteID + "/dns-policies"
 	var resp DnsPolicyDto
 	if err := c.DoRequest(ctx, "POST", path, req, &resp); err != nil {
 		return nil, err
@@ -23,7 +23,7 @@ func (c *Client) CreateDnsPolicy(ctx context.Context, siteID string, req *DnsPol
 }
 
 func (c *Client) GetDnsPolicy(ctx context.Context, siteID, policyID string) (*DnsPolicyDto, error) {
-	path := "/proxy/network/integration/v1/sites/" + siteID + "/dns-policies/" + policyID
+	path := "/v1/sites/" + siteID + "/dns-policies/" + policyID
 	var resp DnsPolicyDto
 	if err := c.DoRequest(ctx, "GET", path, nil, &resp); err != nil {
 		return nil, err
@@ -32,7 +32,7 @@ func (c *Client) GetDnsPolicy(ctx context.Context, siteID, policyID string) (*Dn
 }
 
 func (c *Client) UpdateDnsPolicy(ctx context.Context, siteID, policyID string, req *DnsPolicyDto) (*DnsPolicyDto, error) {
-	path := "/proxy/network/integration/v1/sites/" + siteID + "/dns-policies/" + policyID
+	path := "/v1/sites/" + siteID + "/dns-policies/" + policyID
 	var resp DnsPolicyDto
 	if err := c.DoRequest(ctx, "PUT", path, req, &resp); err != nil {
 		return nil, err
@@ -41,12 +41,12 @@ func (c *Client) UpdateDnsPolicy(ctx context.Context, siteID, policyID string, r
 }
 
 func (c *Client) DeleteDnsPolicy(ctx context.Context, siteID, policyID string) error {
-	path := "/proxy/network/integration/v1/sites/" + siteID + "/dns-policies/" + policyID
+	path := "/v1/sites/" + siteID + "/dns-policies/" + policyID
 	return c.DoRequest(ctx, "DELETE", path, nil, nil)
 }
 
 func (c *Client) ListDnsPolicies(ctx context.Context, siteID string) ([]DnsPolicyDto, error) {
-	path := "/proxy/network/integration/v1/sites/" + siteID + "/dns/policies"
+	path := "/v1/sites/" + siteID + "/dns/policies"
 	var resp struct {
 		Data []DnsPolicyDto `json:"data"`
 	}
