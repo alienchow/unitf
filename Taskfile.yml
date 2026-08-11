@@ -3,7 +3,8 @@ version: '3'
 vars:
   PROVIDER_NAME: unitf
   PROVIDER_NAMESPACE: alienchow
-  VERSION: 0.1.0
+  VERSION:
+    sh: git describe --tags --abbrev=0 | sed 's/^v//'
 
 tasks:
   build:
