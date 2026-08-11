@@ -1,36 +1,84 @@
 package main
 
 import (
+	"embed"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 )
 
+//go:embed testdata/*
+var testDataFS embed.FS
+
+func getTestData(t *testing.T, filename string) string {
+	t.Helper()
+	b, err := testDataFS.ReadFile("testdata/" + filename)
+	if err != nil {
+		t.Fatalf("Failed to load testdata %s: %v", filename, err)
+	}
+	return string(b)
+}
+
 func TestCleanProviderAttribute(t *testing.T) {
-	input := `resource "unifi_network" "test" {
+	tests := []struct {
+		name     string
+		input    string
+		expected string
+	}{
+		{
+			name: "unifi provider",
+			input: `resource "unifi_network" "test" {
   provider = unifi
   name     = "IoT"
-}`
-	expected := `resource "unifi_network" "test" {
+}`,
+			expected: `resource "unifi_network" "test" {
   name     = "IoT"
-}`
-	result := cleanProviderAttribute(input)
-	if strings.TrimSpace(result) != strings.TrimSpace(expected) {
-		t.Errorf("cleanProviderAttribute failed.\nGot:\n%s\nExpected:\n%s", result, expected)
+}`,
+		},
+		{
+			name: "unitf provider",
+			input: `resource "unifi_network" "test" {
+  provider = unitf
+  name     = "IoT"
+}`,
+			expected: `resource "unifi_network" "test" {
+  name     = "IoT"
+}`,
+		},
+		{
+			name: "no provider line",
+			input: `resource "unifi_network" "test" {
+  name     = "IoT"
+}`,
+			expected: `resource "unifi_network" "test" {
+  name     = "IoT"
+}`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := cleanProviderAttribute(tt.input)
+			if strings.TrimSpace(result) != strings.TrimSpace(tt.expected) {
+				t.Errorf("cleanProviderAttribute failed for %s.\nGot:\n%s\nExpected:\n%s", tt.name, result, tt.expected)
+			}
+		})
 	}
 }
 
 func TestExtractSiteID(t *testing.T) {
-	content, err := os.ReadFile(filepath.Join("testdata", "baseline_sample.tf"))
-	if err != nil {
-		t.Fatalf("Failed to load testdata: %v", err)
-	}
+	content := getTestData(t, "baseline_sample.tf")
 
-	siteID := extractSiteID(string(content))
+	siteID := extractSiteID(content)
 	expected := "88f7af54-98f8-306a-a1c7-c9349722b1f6"
 	if siteID != expected {
 		t.Errorf("extractSiteID failed. Got %q, expected %q", siteID, expected)
+	}
+
+	// Edge case: no site_id
+	if noSite := extractSiteID(`resource "test" "t" { name = "foo" }`); noSite != "" {
+		t.Errorf("Expected empty string when site_id missing, got %q", noSite)
 	}
 }
 
@@ -48,14 +96,11 @@ func TestRefactorAndCleanup(t *testing.T) {
 	}
 	defer os.RemoveAll(tempDir)
 
-	content, err := os.ReadFile(filepath.Join("testdata", "baseline_sample.tf"))
-	if err != nil {
-		t.Fatalf("Failed to load testdata: %v", err)
-	}
+	content := getTestData(t, "baseline_sample.tf")
 
 	baselineFile := filepath.Join(tempDir, "baseline.tf")
 	// #nosec G304,G703
-	if err := os.WriteFile(baselineFile, content, 0600); err != nil {
+	if err := os.WriteFile(baselineFile, []byte(content), 0600); err != nil {
 		t.Fatalf("Failed to write baseline.tf: %v", err)
 	}
 
@@ -96,5 +141,18 @@ func TestRefactorAndCleanup(t *testing.T) {
 	// #nosec G304
 	if _, err := os.ReadFile(camFile); err != nil {
 		t.Fatalf("protect_cameras.tf was not generated: %v", err)
+	}
+}
+
+func TestRefactorAndCleanup_NonExistentBaseline(t *testing.T) {
+	tempDir, err := os.MkdirTemp("", "setup_test_empty_*")
+	if err != nil {
+		t.Fatalf("Failed to create temp dir: %v", err)
+	}
+	defer os.RemoveAll(tempDir)
+
+	// Should handle missing baseline gracefully without erroring out
+	if err := runStep3RefactorAndCleanup(tempDir); err != nil {
+		t.Errorf("Expected no error when baseline.tf missing, got %v", err)
 	}
 }

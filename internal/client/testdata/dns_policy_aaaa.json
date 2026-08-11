@@ -1,0 +1,8 @@
+{
+  "id": "aaaa-1234",
+  "domain": "ipv6.internal",
+  "enabled": true,
+  "type": "AAAA_RECORD",
+  "ipv6Address": "2001:db8::1",
+  "ttlSeconds": 600
+}

@@ -1,0 +1,7 @@
+{
+  "id": "forward-1234",
+  "domain": "forward.internal",
+  "enabled": true,
+  "type": "FORWARD_DOMAIN",
+  "ipAddress": "1.1.1.1"
+}

@@ -1,0 +1,7 @@
+{
+  "id": "txt-1234",
+  "domain": "info.internal",
+  "enabled": true,
+  "type": "TXT_RECORD",
+  "text": "v=spf1 -all"
+}

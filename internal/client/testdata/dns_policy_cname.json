@@ -1,0 +1,8 @@
+{
+  "id": "cname-1234",
+  "domain": "alias.internal",
+  "enabled": true,
+  "type": "CNAME_RECORD",
+  "targetDomain": "unifi.internal",
+  "ttlSeconds": 300
+}

@@ -13,10 +13,10 @@ These guidelines are meant for autonomous AI agents contributing to this codebas
 *   Example: `network_res` depends on `client.NetworkClient` interface, not `*client.Client`.
 
 ## 3. Unit Testing, Mocking & Testdata
-*   **Unit Tests are Mandatory:** Every new resource, data source, CLI command, or utility function must include comprehensive unit tests. Please be overzealous in unit testing everything. Maximise unit test coverage.
-*   **Testdata Pattern:** Do not inline large raw text blocks or JSON payloads in your test files. Instead, use the `testdata/` directory pattern to store mock inputs (e.g., API responses) and expected outputs (e.g., Terraform states or plan objects). Read these files during test execution.
-*   **Mocking:** Use the dependency injected interfaces to mock external API interactions where possible, or use Terraform's testing framework (`resource.UnitTest`) to validate configurations and plans using the aforementioned `testdata/` files.
-*   Ensure that edge cases (like invalid types or missing required fields) are captured in unit tests.
+*   **Unit Tests are Mandatory:** Every resource, data source, CLI command, and utility function must include comprehensive unit tests. Be overzealous in unit testing everything. Test every permutation, every edge case, and all code branches. Maximise unit test coverage.
+*   **Testdata & embed.FS Pattern:** Do not inline large raw text blocks or JSON payloads in your test files. ALWAYS store mock inputs (e.g., API responses) and expected outputs (e.g., Terraform configurations, states, or plan objects) in the `testdata/` directory and use Go's `embed.FS` (`//go:embed testdata/*`) to load them during test execution.
+*   **Mocking:** Use the dependency injected interfaces to mock external API interactions where possible, or use Terraform's testing framework (`resource.UnitTest`) to validate configurations and plans using the aforementioned `testdata/` files embedded via `embed.FS`.
+*   Ensure that all edge cases (like invalid types, null/unknown values, empty payloads, missing required fields, or API error responses) are fully captured in unit tests.
 
 ## 4. Terraform Plugin Framework (v6)
 *   Strictly use the `terraform-plugin-framework` instead of the old SDKv2.
