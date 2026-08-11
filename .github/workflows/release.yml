@@ -36,7 +36,7 @@ jobs:
           VERSION=${{ steps.tag_version.outputs.new_tag }}
           # Strip 'v' prefix if present for binary name
           CLEAN_VERSION=${VERSION#v}
-          go build -o terraform-provider-unitf_v${CLEAN_VERSION}
+          go build -ldflags="-X main.version=${CLEAN_VERSION}" -o terraform-provider-unitf_v${CLEAN_VERSION}
           echo "BINARY_PATH=terraform-provider-unitf_v${CLEAN_VERSION}" >> $GITHUB_ENV
 
       - name: Generate SLSA Build Level 3 Provenance

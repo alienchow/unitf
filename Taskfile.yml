@@ -15,7 +15,7 @@ tasks:
           echo "Error: No semantic version tag found even after git pull --tags. Please create one."
           exit 1
         fi
-        go build -o terraform-provider-{{.PROVIDER_NAME}}_v${VERSION}
+        go build -ldflags="-X main.version=${VERSION}" -o terraform-provider-{{.PROVIDER_NAME}}_v${VERSION}
 
   install:
     desc: Build and install the provider to the local plugins directory for OpenTofu or Terraform

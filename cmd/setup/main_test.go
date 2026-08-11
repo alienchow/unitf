@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"embed"
 	"os"
 	"path/filepath"
@@ -82,13 +83,12 @@ func TestRunCommand(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create temp dir: %v", err)
 	}
-	defer os.RemoveAll(tempDir)
+	defer func() { _ = os.RemoveAll(tempDir) }() //nolint:errcheck // test cleanup
 
-	if err := runCommand(tempDir, "echo", "hello"); err != nil {
+	if err := runCommand(context.Background(), tempDir, "echo", "hello"); err != nil {
 		t.Errorf("runCommand failed: %v", err)
 	}
-
-	if err := runCommand(tempDir, "false"); err == nil {
+	if err := runCommand(context.Background(), tempDir, "false"); err == nil {
 		t.Errorf("Expected error from 'false' command, got nil")
 	}
 }
@@ -120,13 +120,13 @@ func setupMockBinary(t *testing.T) string {
 
 func TestRunStep1GenerateImports(t *testing.T) {
 	mockBinDir := setupMockBinary(t)
-	defer os.RemoveAll(mockBinDir)
+	defer func() { _ = os.RemoveAll(mockBinDir) }() //nolint:errcheck // test cleanup
 
 	tempDir, err := os.MkdirTemp("", "step1_test_*")
 	if err != nil {
 		t.Fatalf("Failed to create temp dir: %v", err)
 	}
-	defer os.RemoveAll(tempDir)
+	defer func() { _ = os.RemoveAll(tempDir) }() //nolint:errcheck // test cleanup
 
 	if err := runStep1GenerateImports(tempDir); err != nil {
 		t.Fatalf("runStep1GenerateImports failed: %v", err)
@@ -140,13 +140,13 @@ func TestRunStep1GenerateImports(t *testing.T) {
 
 func TestRunStep2GenerateBaseline(t *testing.T) {
 	mockBinDir := setupMockBinary(t)
-	defer os.RemoveAll(mockBinDir)
+	defer func() { _ = os.RemoveAll(mockBinDir) }() //nolint:errcheck // test cleanup
 
 	tempDir, err := os.MkdirTemp("", "step2_test_*")
 	if err != nil {
 		t.Fatalf("Failed to create temp dir: %v", err)
 	}
-	defer os.RemoveAll(tempDir)
+	defer func() { _ = os.RemoveAll(tempDir) }() //nolint:errcheck // test cleanup
 
 	if err := runStep2GenerateBaseline(tempDir); err != nil {
 		t.Fatalf("runStep2GenerateBaseline failed: %v", err)
@@ -163,7 +163,7 @@ func TestRefactorAndCleanup_UnmappedResourceType(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create temp dir: %v", err)
 	}
-	defer os.RemoveAll(tempDir)
+	defer func() { _ = os.RemoveAll(tempDir) }() //nolint:errcheck // test cleanup
 
 	content := `# __generated__ by OpenTofu from "88f7af54-98f8-306a-a1c7-c9349722b1f6/unmapped-1"
 resource "unifi_unknown_custom_resource" "unknown_1" {
@@ -198,7 +198,7 @@ func TestRefactorAndCleanup_Sample(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create temp dir: %v", err)
 	}
-	defer os.RemoveAll(tempDir)
+	defer func() { _ = os.RemoveAll(tempDir) }() //nolint:errcheck // test cleanup
 
 	content := getTestData(t, "baseline_sample.tf")
 
@@ -237,7 +237,7 @@ func TestRefactorAndCleanup_EnterpriseFullTopology(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create temp dir: %v", err)
 	}
-	defer os.RemoveAll(tempDir)
+	defer func() { _ = os.RemoveAll(tempDir) }() //nolint:errcheck // test cleanup
 
 	content := getTestData(t, "baseline_enterprise_full_topology.tf")
 
@@ -292,7 +292,7 @@ func TestRefactorAndCleanup_NonExistentBaseline(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create temp dir: %v", err)
 	}
-	defer os.RemoveAll(tempDir)
+	defer func() { _ = os.RemoveAll(tempDir) }() //nolint:errcheck // test cleanup
 
 	if err := runStep3RefactorAndCleanup(tempDir); err != nil {
 		t.Errorf("Expected no error when baseline.tf missing, got %v", err)

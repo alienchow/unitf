@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"log"
@@ -62,8 +63,8 @@ func main() {
 	log.Println("Workspace setup complete successfully!")
 }
 
-func runCommand(dir, name string, args ...string) error {
-	cmd := exec.Command(name, args...)
+func runCommand(ctx context.Context, dir, name string, args ...string) error {
+	cmd := exec.CommandContext(ctx, name, args...)
 	cmd.Dir = dir
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -176,18 +177,24 @@ resource "local_file" "explicit_imports" {
 		return fmt.Errorf("failed to write init_discovery.tf: %w", err)
 	}
 
+	ctx := context.Background()
 	tfCmd := getTofuOrTerraform()
 
-	if err := runCommand(dir, tfCmd, "init"); err != nil {
+	if err := runCommand(ctx, dir, tfCmd, "init"); err != nil {
 		return fmt.Errorf("failed to run init: %w", err)
 	}
 
-	if err := runCommand(dir, tfCmd, "apply", "-target=local_file.explicit_imports", "-auto-approve"); err != nil {
+	if err := runCommand(ctx, dir, tfCmd, "apply", "-target=local_file.explicit_imports", "-auto-approve"); err != nil {
 		return fmt.Errorf("failed to apply explicit imports generator: %w", err)
 	}
 
-	_ = runCommand(dir, tfCmd, "state", "rm", "local_file.explicit_imports")
-	_ = os.Remove(initDiscoveryFile)
+	// Best-effort cleanup: state rm and file removal are non-fatal.
+	if err := runCommand(ctx, dir, tfCmd, "state", "rm", "local_file.explicit_imports"); err != nil {
+		log.Printf("Warning: failed to remove local_file.explicit_imports from state: %v", err)
+	}
+	if err := os.Remove(initDiscoveryFile); err != nil && !os.IsNotExist(err) {
+		log.Printf("Warning: failed to remove init_discovery.tf: %v", err)
+	}
 
 	return nil
 }
@@ -195,10 +202,13 @@ resource "local_file" "explicit_imports" {
 func runStep2GenerateBaseline(dir string) error {
 	log.Println("==> Step 2: Generating baseline configuration...")
 
+	ctx := context.Background()
 	tfCmd := getTofuOrTerraform()
 
 	baselineFile := filepath.Join(dir, "baseline.tf")
-	_ = runCommand(dir, tfCmd, "plan", "-generate-config-out=baseline.tf")
+	if err := runCommand(ctx, dir, tfCmd, "plan", "-generate-config-out=baseline.tf"); err != nil {
+		return fmt.Errorf("failed to generate baseline config: %w", err)
+	}
 
 	content, err := os.ReadFile(baselineFile)
 	if err != nil {
@@ -211,7 +221,7 @@ func runStep2GenerateBaseline(dir string) error {
 		return fmt.Errorf("failed to write cleaned baseline.tf: %w", err)
 	}
 
-	if err := runCommand(dir, tfCmd, "apply", "-auto-approve"); err != nil {
+	if err := runCommand(ctx, dir, tfCmd, "apply", "-auto-approve"); err != nil {
 		log.Printf("Notice during baseline apply: %v", err)
 	}
 
@@ -261,11 +271,19 @@ func runStep3RefactorAndCleanup(dir string) error {
 		log.Printf("Segmented %d resources into %s", len(blocks), fileName)
 	}
 
-	_ = os.Remove(baselineFile)
-	_ = os.Remove(filepath.Join(dir, "explicit_imports.tf"))
+	// Best-effort cleanup of temporary files.
+	if err := os.Remove(baselineFile); err != nil && !os.IsNotExist(err) {
+		log.Printf("Warning: failed to remove baseline.tf: %v", err)
+	}
+	if err := os.Remove(filepath.Join(dir, "explicit_imports.tf")); err != nil && !os.IsNotExist(err) {
+		log.Printf("Warning: failed to remove explicit_imports.tf: %v", err)
+	}
 
+	ctx := context.Background()
 	tfCmd := getTofuOrTerraform()
-	_ = runCommand(dir, tfCmd, "fmt")
+	if err := runCommand(ctx, dir, tfCmd, "fmt"); err != nil {
+		log.Printf("Warning: tofu/terraform fmt failed: %v", err)
+	}
 
 	return nil
 }
