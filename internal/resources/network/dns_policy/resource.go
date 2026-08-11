@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -75,9 +76,9 @@ func (r *DnsPolicyResource) Schema(ctx context.Context, req resource.SchemaReque
 			},
 			"type": schema.StringAttribute{
 				Required:    true,
-				Description: "Record type: A, AAAA, CNAME, MX, SRV, TXT, FORWARD_DOMAIN",
+				Description: "Record type: A_RECORD, AAAA_RECORD, CNAME_RECORD, MX_RECORD, SRV_RECORD, TXT_RECORD, FORWARD_DOMAIN",
 				Validators: []validator.String{
-					stringvalidator.OneOf("A", "AAAA", "CNAME", "MX", "SRV", "TXT", "FORWARD_DOMAIN"),
+					stringvalidator.OneOf("A_RECORD", "AAAA_RECORD", "CNAME_RECORD", "MX_RECORD", "SRV_RECORD", "TXT_RECORD", "FORWARD_DOMAIN"),
 				},
 			},
 			"value": schema.StringAttribute{
@@ -86,6 +87,8 @@ func (r *DnsPolicyResource) Schema(ctx context.Context, req resource.SchemaReque
 			},
 			"ttl": schema.Int64Attribute{
 				Optional:    true,
+				Computed:    true,
+				Default:     int64default.StaticInt64(300),
 				Description: "Time to Live in seconds.",
 			},
 		},
@@ -112,13 +115,25 @@ func (r *DnsPolicyResource) Create(ctx context.Context, req resource.CreateReque
 	}
 
 	dto := &client.DnsPolicyDto{
-		Name:    plan.Name.ValueString(),
+		Domain:  plan.Name.ValueString(),
 		Enabled: plan.Enabled.ValueBool(),
 		Type:    plan.Type.ValueString(),
-		Value:   plan.Value.ValueString(),
+	}
+	val := plan.Value.ValueString()
+	switch dto.Type {
+	case "A_RECORD":
+		dto.IPv4Address = val
+	case "AAAA_RECORD":
+		dto.IPv6Address = val
+	case "CNAME_RECORD":
+		dto.TargetDomain = val
+	case "TXT_RECORD":
+		dto.Text = val
+	case "FORWARD_DOMAIN":
+		dto.IPAddress = val
 	}
 	if !plan.TTL.IsNull() {
-		dto.TTL = int(plan.TTL.ValueInt64())
+		dto.TTLSeconds = int(plan.TTL.ValueInt64())
 	}
 
 	res, err := r.client.CreateDnsPolicy(ctx, plan.SiteID.ValueString(), dto)
@@ -148,12 +163,25 @@ func (r *DnsPolicyResource) Read(ctx context.Context, req resource.ReadRequest, 
 		return
 	}
 
-	state.Name = types.StringValue(res.Name)
+	state.Name = types.StringValue(res.Domain)
 	state.Enabled = types.BoolValue(res.Enabled)
 	state.Type = types.StringValue(res.Type)
-	state.Value = types.StringValue(res.Value)
-	if res.TTL > 0 {
-		state.TTL = types.Int64Value(int64(res.TTL))
+	var val string
+	switch res.Type {
+	case "A_RECORD":
+		val = res.IPv4Address
+	case "AAAA_RECORD":
+		val = res.IPv6Address
+	case "CNAME_RECORD":
+		val = res.TargetDomain
+	case "TXT_RECORD":
+		val = res.Text
+	case "FORWARD_DOMAIN":
+		val = res.IPAddress
+	}
+	state.Value = types.StringValue(val)
+	if res.TTLSeconds > 0 {
+		state.TTL = types.Int64Value(int64(res.TTLSeconds))
 	} else {
 		state.TTL = types.Int64Null()
 	}
@@ -169,13 +197,25 @@ func (r *DnsPolicyResource) Update(ctx context.Context, req resource.UpdateReque
 	}
 
 	dto := &client.DnsPolicyDto{
-		Name:    plan.Name.ValueString(),
+		Domain:  plan.Name.ValueString(),
 		Enabled: plan.Enabled.ValueBool(),
 		Type:    plan.Type.ValueString(),
-		Value:   plan.Value.ValueString(),
+	}
+	val := plan.Value.ValueString()
+	switch dto.Type {
+	case "A_RECORD":
+		dto.IPv4Address = val
+	case "AAAA_RECORD":
+		dto.IPv6Address = val
+	case "CNAME_RECORD":
+		dto.TargetDomain = val
+	case "TXT_RECORD":
+		dto.Text = val
+	case "FORWARD_DOMAIN":
+		dto.IPAddress = val
 	}
 	if !plan.TTL.IsNull() {
-		dto.TTL = int(plan.TTL.ValueInt64())
+		dto.TTLSeconds = int(plan.TTL.ValueInt64())
 	}
 
 	res, err := r.client.UpdateDnsPolicy(ctx, plan.SiteID.ValueString(), plan.ID.ValueString(), dto)

@@ -40,3 +40,8 @@ These guidelines are meant for autonomous AI agents contributing to this codebas
 *   **Single Source of Truth:** Use `golangci-lint` as the primary tool for linting, formatting, vetting, and security checks.
 *   **No Redundant Steps:** Do not introduce separate CI steps or standalone commands for `go fmt`, `go vet`, or `gosec`. Rely entirely on the `.golangci.yml` configuration.
 *   **Pre-Commit Requirement:** ALWAYS run `go test ./...` and `golangci-lint run` and ensure they both pass before committing any code changes.
+
+## 8. OpenAPI Specifications
+When developing, do not run web searches for the API. Always use the following specs:
+- Network: [https://developer.ui.com/network/v10.4.57/openapi.json](https://developer.ui.com/network/v10.4.57/openapi.json)
+- Protect: [https://developer.ui.com/protect/v7.1.87/openapi.json](https://developer.ui.com/protect/v7.1.87/openapi.json)

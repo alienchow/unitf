@@ -144,3 +144,7 @@ We welcome community contributions. To maintain the integrity and consistency of
 ## License
 
 This project is distributed under the MIT License.
+
+## OpenAPI Specifications
+- Network: [https://developer.ui.com/network/v10.4.57/openapi.json](https://developer.ui.com/network/v10.4.57/openapi.json)
+- Protect: [https://developer.ui.com/protect/v7.1.87/openapi.json](https://developer.ui.com/protect/v7.1.87/openapi.json)

@@ -94,7 +94,7 @@ func (d *DnsPoliciesDataSource) Read(ctx context.Context, req datasource.ReadReq
 	for _, n := range items {
 		state.Items = append(state.Items, DnspolicyModel{
 			ID:   types.StringValue(n.ID),
-			Name: types.StringValue(n.Name),
+			Name: types.StringValue(n.Domain),
 		})
 	}
 
