@@ -3,11 +3,15 @@ version: '3'
 vars:
   PROVIDER_NAME: unitf
   PROVIDER_NAMESPACE: alienchow
-  VERSION: 0.1.0
+  VERSION:
+    sh: git describe --tags --abbrev=0 | sed 's/^v//'
 
 tasks:
   build:
     desc: Build the provider binary
+    preconditions:
+      - sh: '[ -n "{{.VERSION}}" ]'
+        msg: "Error: No semantic version tag found. Please run 'git pull --tags' to fetch them."
     cmds:
       - go build -o terraform-provider-{{.PROVIDER_NAME}}_v{{.VERSION}}
 
