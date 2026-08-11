@@ -15,7 +15,6 @@ import (
 var testAccDevicesDataSourceConfig string
 
 func TestAccDevicesDataSource(t *testing.T) {
-	t.Skip("not yet implemented")
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
 			"unifi": providerserver.NewProtocol6WithError(provider.New("test")()),
