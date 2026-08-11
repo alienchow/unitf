@@ -5,28 +5,28 @@ import (
 	"os"
 
 	"github.com/alienchow/unitf/internal/client"
+	acl_rules_ds "github.com/alienchow/unitf/internal/datasources/network/acl_rules"
 	clients_ds "github.com/alienchow/unitf/internal/datasources/network/clients"
 	countries_ds "github.com/alienchow/unitf/internal/datasources/network/countries"
 	device_statistics_ds "github.com/alienchow/unitf/internal/datasources/network/device_statistics"
 	device_tags_ds "github.com/alienchow/unitf/internal/datasources/network/device_tags"
 	devices_ds "github.com/alienchow/unitf/internal/datasources/network/devices"
+	dns_policies_ds "github.com/alienchow/unitf/internal/datasources/network/dns_policies"
 	dpi_applications_ds "github.com/alienchow/unitf/internal/datasources/network/dpi_applications"
 	dpi_categories_ds "github.com/alienchow/unitf/internal/datasources/network/dpi_categories"
-	lags_ds "github.com/alienchow/unitf/internal/datasources/network/lags"
-	mc_lag_domains_ds "github.com/alienchow/unitf/internal/datasources/network/mc_lag_domains"
-	radius_profiles_ds "github.com/alienchow/unitf/internal/datasources/network/radius_profiles"
-	sites_ds "github.com/alienchow/unitf/internal/datasources/network/sites"
-	traffic_matching_lists_ds "github.com/alienchow/unitf/internal/datasources/network/traffic_matching_lists"
-	dns_policies_ds "github.com/alienchow/unitf/internal/datasources/network/dns_policies"
-	acl_rules_ds "github.com/alienchow/unitf/internal/datasources/network/acl_rules"
-	wifi_broadcasts_ds "github.com/alienchow/unitf/internal/datasources/network/wifi_broadcasts"
 	firewall_policies_ds "github.com/alienchow/unitf/internal/datasources/network/firewall_policies"
 	firewall_zones_ds "github.com/alienchow/unitf/internal/datasources/network/firewall_zones"
+	lags_ds "github.com/alienchow/unitf/internal/datasources/network/lags"
+	mc_lag_domains_ds "github.com/alienchow/unitf/internal/datasources/network/mc_lag_domains"
 	networks_ds "github.com/alienchow/unitf/internal/datasources/network/networks"
+	radius_profiles_ds "github.com/alienchow/unitf/internal/datasources/network/radius_profiles"
+	sites_ds "github.com/alienchow/unitf/internal/datasources/network/sites"
 	switch_stacks_ds "github.com/alienchow/unitf/internal/datasources/network/switch_stacks"
+	traffic_matching_lists_ds "github.com/alienchow/unitf/internal/datasources/network/traffic_matching_lists"
 	vpn_servers_ds "github.com/alienchow/unitf/internal/datasources/network/vpn_servers"
 	vpn_tunnels_ds "github.com/alienchow/unitf/internal/datasources/network/vpn_tunnels"
 	wans_ds "github.com/alienchow/unitf/internal/datasources/network/wans"
+	wifi_broadcasts_ds "github.com/alienchow/unitf/internal/datasources/network/wifi_broadcasts"
 	cameras_ds "github.com/alienchow/unitf/internal/datasources/protect/cameras"
 	chimes_ds "github.com/alienchow/unitf/internal/datasources/protect/chimes"
 	fobs_ds "github.com/alienchow/unitf/internal/datasources/protect/fobs"
@@ -131,10 +131,7 @@ func (p *UniFiProvider) Configure(ctx context.Context, req provider.ConfigureReq
 		apiKey = config.APIKey.ValueString()
 	}
 
-	insecure := false
-	if os.Getenv("UNIFI_INSECURE") == "true" || os.Getenv("UNIFI_INSECURE") == "1" {
-		insecure = true
-	}
+	insecure := os.Getenv("UNIFI_INSECURE") == "true" || os.Getenv("UNIFI_INSECURE") == "1"
 	if !config.Insecure.IsNull() {
 		insecure = config.Insecure.ValueBool()
 	}
