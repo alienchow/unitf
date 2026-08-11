@@ -1,0 +1,7 @@
+{
+  "id": "corrupted",
+  "domain": "unifi.internal",
+  "enabled": true,
+  "type": "A_RECORD",
+  "ipv4Address": 123456789
+}

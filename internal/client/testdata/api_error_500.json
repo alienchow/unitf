@@ -1,0 +1,4 @@
+{
+  "code": "api.err.internal_server_error",
+  "message": "An unexpected error occurred on the gateway."
+}

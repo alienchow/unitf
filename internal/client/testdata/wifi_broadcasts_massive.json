@@ -1,0 +1,74 @@
+{
+  "data": [
+    {
+      "id": "wifi-ssid-1",
+      "name": "Enterprise-SSID-1",
+      "enabled": true,
+      "security": "WPA3",
+      "vlanId": 101
+    },
+    {
+      "id": "wifi-ssid-2",
+      "name": "Enterprise-SSID-2",
+      "enabled": true,
+      "security": "WPA3",
+      "vlanId": 102
+    },
+    {
+      "id": "wifi-ssid-3",
+      "name": "Enterprise-SSID-3",
+      "enabled": true,
+      "security": "WPA3",
+      "vlanId": 103
+    },
+    {
+      "id": "wifi-ssid-4",
+      "name": "Enterprise-SSID-4",
+      "enabled": true,
+      "security": "WPA3",
+      "vlanId": 104
+    },
+    {
+      "id": "wifi-ssid-5",
+      "name": "Enterprise-SSID-5",
+      "enabled": true,
+      "security": "WPA3",
+      "vlanId": 105
+    },
+    {
+      "id": "wifi-ssid-6",
+      "name": "Enterprise-SSID-6",
+      "enabled": true,
+      "security": "WPA3",
+      "vlanId": 106
+    },
+    {
+      "id": "wifi-ssid-7",
+      "name": "Enterprise-SSID-7",
+      "enabled": true,
+      "security": "WPA3",
+      "vlanId": 107
+    },
+    {
+      "id": "wifi-ssid-8",
+      "name": "Enterprise-SSID-8",
+      "enabled": true,
+      "security": "WPA3",
+      "vlanId": 108
+    },
+    {
+      "id": "wifi-ssid-9",
+      "name": "Enterprise-SSID-9",
+      "enabled": true,
+      "security": "WPA3",
+      "vlanId": 109
+    },
+    {
+      "id": "wifi-ssid-10",
+      "name": "Enterprise-SSID-10",
+      "enabled": true,
+      "security": "WPA3",
+      "vlanId": 110
+    }
+  ]
+}

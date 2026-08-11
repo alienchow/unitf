@@ -1,0 +1,142 @@
+[
+  {
+    "id": "dev-1",
+    "_id": "dev-1",
+    "name": "USW-Pro-48-PoE-1",
+    "mac": "74:83:c2:01:11:22",
+    "adopted": true
+  },
+  {
+    "id": "dev-2",
+    "_id": "dev-2",
+    "name": "USW-Pro-48-PoE-2",
+    "mac": "74:83:c2:02:11:22",
+    "adopted": true
+  },
+  {
+    "id": "dev-3",
+    "_id": "dev-3",
+    "name": "USW-Pro-48-PoE-3",
+    "mac": "74:83:c2:03:11:22",
+    "adopted": true
+  },
+  {
+    "id": "dev-4",
+    "_id": "dev-4",
+    "name": "USW-Pro-48-PoE-4",
+    "mac": "74:83:c2:04:11:22",
+    "adopted": true
+  },
+  {
+    "id": "dev-5",
+    "_id": "dev-5",
+    "name": "USW-Pro-48-PoE-5",
+    "mac": "74:83:c2:05:11:22",
+    "adopted": true
+  },
+  {
+    "id": "dev-6",
+    "_id": "dev-6",
+    "name": "USW-Pro-48-PoE-6",
+    "mac": "74:83:c2:06:11:22",
+    "adopted": true
+  },
+  {
+    "id": "dev-7",
+    "_id": "dev-7",
+    "name": "USW-Pro-48-PoE-7",
+    "mac": "74:83:c2:07:11:22",
+    "adopted": true
+  },
+  {
+    "id": "dev-8",
+    "_id": "dev-8",
+    "name": "USW-Pro-48-PoE-8",
+    "mac": "74:83:c2:08:11:22",
+    "adopted": true
+  },
+  {
+    "id": "dev-9",
+    "_id": "dev-9",
+    "name": "USW-Pro-48-PoE-9",
+    "mac": "74:83:c2:09:11:22",
+    "adopted": true
+  },
+  {
+    "id": "dev-10",
+    "_id": "dev-10",
+    "name": "USW-Pro-48-PoE-10",
+    "mac": "74:83:c2:0a:11:22",
+    "adopted": true
+  },
+  {
+    "id": "dev-11",
+    "_id": "dev-11",
+    "name": "USW-Pro-48-PoE-11",
+    "mac": "74:83:c2:0b:11:22",
+    "adopted": true
+  },
+  {
+    "id": "dev-12",
+    "_id": "dev-12",
+    "name": "USW-Pro-48-PoE-12",
+    "mac": "74:83:c2:0c:11:22",
+    "adopted": true
+  },
+  {
+    "id": "dev-13",
+    "_id": "dev-13",
+    "name": "USW-Pro-48-PoE-13",
+    "mac": "74:83:c2:0d:11:22",
+    "adopted": true
+  },
+  {
+    "id": "dev-14",
+    "_id": "dev-14",
+    "name": "USW-Pro-48-PoE-14",
+    "mac": "74:83:c2:0e:11:22",
+    "adopted": true
+  },
+  {
+    "id": "dev-15",
+    "_id": "dev-15",
+    "name": "USW-Pro-48-PoE-15",
+    "mac": "74:83:c2:0f:11:22",
+    "adopted": true
+  },
+  {
+    "id": "dev-16",
+    "_id": "dev-16",
+    "name": "USW-Pro-48-PoE-16",
+    "mac": "74:83:c2:10:11:22",
+    "adopted": true
+  },
+  {
+    "id": "dev-17",
+    "_id": "dev-17",
+    "name": "USW-Pro-48-PoE-17",
+    "mac": "74:83:c2:11:11:22",
+    "adopted": true
+  },
+  {
+    "id": "dev-18",
+    "_id": "dev-18",
+    "name": "USW-Pro-48-PoE-18",
+    "mac": "74:83:c2:12:11:22",
+    "adopted": true
+  },
+  {
+    "id": "dev-19",
+    "_id": "dev-19",
+    "name": "USW-Pro-48-PoE-19",
+    "mac": "74:83:c2:13:11:22",
+    "adopted": true
+  },
+  {
+    "id": "dev-20",
+    "_id": "dev-20",
+    "name": "USW-Pro-48-PoE-20",
+    "mac": "74:83:c2:14:11:22",
+    "adopted": true
+  }
+]

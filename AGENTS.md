@@ -14,7 +14,7 @@ These guidelines are meant for autonomous AI agents contributing to this codebas
 
 ## 3. Unit Testing, Mocking & Testdata
 *   **Unit Tests are Mandatory:** Every resource, data source, CLI command, and utility function must include comprehensive unit tests. Be overzealous in unit testing everything. Test every permutation, every edge case, and all code branches. Maximise unit test coverage.
-*   **Testdata & embed.FS Pattern:** Do not inline large raw text blocks or JSON payloads in your test files. ALWAYS store mock inputs (e.g., API responses) and expected outputs (e.g., Terraform configurations, states, or plan objects) in the `testdata/` directory and use Go's `embed.FS` (`//go:embed testdata/*`) to load them during test execution.
+*   **Testdata & embed.FS Pattern:** Do not inline large raw text blocks or JSON payloads in your test files. ALWAYS store mock inputs (e.g., API responses) and expected outputs (e.g., Terraform configurations, states, or plan objects) in the `testdata/` directory (including all recursive subdirectories) and use Go's `embed.FS` (`//go:embed testdata/*` or `//go:embed all:testdata`) to load them during test execution.
 *   **Mocking:** Use the dependency injected interfaces to mock external API interactions where possible, or use Terraform's testing framework (`resource.UnitTest`) to validate configurations and plans using the aforementioned `testdata/` files embedded via `embed.FS`.
 *   Ensure that all edge cases (like invalid types, null/unknown values, empty payloads, missing required fields, or API error responses) are fully captured in unit tests.
 

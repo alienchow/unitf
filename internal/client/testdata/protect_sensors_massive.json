@@ -1,0 +1,72 @@
+[
+  {
+    "id": "sensor-1",
+    "name": "Multi-Sensor-Lab-1",
+    "alarm": true,
+    "temperatureThreshold": 25.5,
+    "humidityThreshold": 45.0
+  },
+  {
+    "id": "sensor-2",
+    "name": "Multi-Sensor-Lab-2",
+    "alarm": true,
+    "temperatureThreshold": 25.5,
+    "humidityThreshold": 45.0
+  },
+  {
+    "id": "sensor-3",
+    "name": "Multi-Sensor-Lab-3",
+    "alarm": true,
+    "temperatureThreshold": 25.5,
+    "humidityThreshold": 45.0
+  },
+  {
+    "id": "sensor-4",
+    "name": "Multi-Sensor-Lab-4",
+    "alarm": true,
+    "temperatureThreshold": 25.5,
+    "humidityThreshold": 45.0
+  },
+  {
+    "id": "sensor-5",
+    "name": "Multi-Sensor-Lab-5",
+    "alarm": true,
+    "temperatureThreshold": 25.5,
+    "humidityThreshold": 45.0
+  },
+  {
+    "id": "sensor-6",
+    "name": "Multi-Sensor-Lab-6",
+    "alarm": true,
+    "temperatureThreshold": 25.5,
+    "humidityThreshold": 45.0
+  },
+  {
+    "id": "sensor-7",
+    "name": "Multi-Sensor-Lab-7",
+    "alarm": true,
+    "temperatureThreshold": 25.5,
+    "humidityThreshold": 45.0
+  },
+  {
+    "id": "sensor-8",
+    "name": "Multi-Sensor-Lab-8",
+    "alarm": true,
+    "temperatureThreshold": 25.5,
+    "humidityThreshold": 45.0
+  },
+  {
+    "id": "sensor-9",
+    "name": "Multi-Sensor-Lab-9",
+    "alarm": true,
+    "temperatureThreshold": 25.5,
+    "humidityThreshold": 45.0
+  },
+  {
+    "id": "sensor-10",
+    "name": "Multi-Sensor-Lab-10",
+    "alarm": true,
+    "temperatureThreshold": 25.5,
+    "humidityThreshold": 45.0
+  }
+]

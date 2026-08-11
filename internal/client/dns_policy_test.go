@@ -194,6 +194,46 @@ func TestClient_CreateDnsPolicy_Error400(t *testing.T) {
 	}
 }
 
+func TestClient_CreateDnsPolicy_Error500(t *testing.T) {
+	errResp := loadClientTestData(t, "api_error_500.json")
+
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+		_, _ = w.Write(errResp)
+	}))
+	defer ts.Close()
+
+	c, err := client.NewClient(ts.URL, "test-key", true)
+	if err != nil {
+		t.Fatalf("Failed to create client: %v", err)
+	}
+
+	_, err = c.CreateDnsPolicy(context.Background(), "site123", &client.DnsPolicyDto{})
+	if err == nil {
+		t.Fatal("Expected error for 500 server error, got nil")
+	}
+}
+
+func TestClient_GetDnsPolicy_MalformedJSON(t *testing.T) {
+	malformedResp := loadClientTestData(t, "malformed_json.json")
+
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write(malformedResp)
+	}))
+	defer ts.Close()
+
+	c, err := client.NewClient(ts.URL, "test-key", true)
+	if err != nil {
+		t.Fatalf("Failed to create client: %v", err)
+	}
+
+	_, err = c.GetDnsPolicy(context.Background(), "site123", "policy123")
+	if err == nil {
+		t.Fatal("Expected JSON decode error for malformed JSON response, got nil")
+	}
+}
+
 func TestClient_UpdateDnsPolicy(t *testing.T) {
 	mockResp := loadClientTestData(t, "dns_policy_response.json")
 

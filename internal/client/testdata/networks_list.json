@@ -1,0 +1,10 @@
+{
+  "data": [
+    {
+      "id": "net-1",
+      "name": "Default",
+      "purpose": "CORPORATE",
+      "vlanId": 1
+    }
+  ]
+}

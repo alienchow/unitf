@@ -1,0 +1,164 @@
+{
+  "data": [
+    {
+      "id": "acl-rule-001",
+      "name": "ACL-Block-Malicious-1",
+      "action": "DROP",
+      "enabled": true,
+      "sourceIp": "192.168.1.0/24",
+      "destinationIp": "10.0.0.0/8"
+    },
+    {
+      "id": "acl-rule-002",
+      "name": "ACL-Block-Malicious-2",
+      "action": "REJECT",
+      "enabled": true,
+      "sourceIp": "192.168.2.0/24",
+      "destinationIp": "10.0.0.0/8"
+    },
+    {
+      "id": "acl-rule-003",
+      "name": "ACL-Block-Malicious-3",
+      "action": "DROP",
+      "enabled": true,
+      "sourceIp": "192.168.3.0/24",
+      "destinationIp": "10.0.0.0/8"
+    },
+    {
+      "id": "acl-rule-004",
+      "name": "ACL-Block-Malicious-4",
+      "action": "REJECT",
+      "enabled": true,
+      "sourceIp": "192.168.4.0/24",
+      "destinationIp": "10.0.0.0/8"
+    },
+    {
+      "id": "acl-rule-005",
+      "name": "ACL-Block-Malicious-5",
+      "action": "DROP",
+      "enabled": true,
+      "sourceIp": "192.168.5.0/24",
+      "destinationIp": "10.0.0.0/8"
+    },
+    {
+      "id": "acl-rule-006",
+      "name": "ACL-Block-Malicious-6",
+      "action": "REJECT",
+      "enabled": true,
+      "sourceIp": "192.168.6.0/24",
+      "destinationIp": "10.0.0.0/8"
+    },
+    {
+      "id": "acl-rule-007",
+      "name": "ACL-Block-Malicious-7",
+      "action": "DROP",
+      "enabled": true,
+      "sourceIp": "192.168.7.0/24",
+      "destinationIp": "10.0.0.0/8"
+    },
+    {
+      "id": "acl-rule-008",
+      "name": "ACL-Block-Malicious-8",
+      "action": "REJECT",
+      "enabled": true,
+      "sourceIp": "192.168.8.0/24",
+      "destinationIp": "10.0.0.0/8"
+    },
+    {
+      "id": "acl-rule-009",
+      "name": "ACL-Block-Malicious-9",
+      "action": "DROP",
+      "enabled": true,
+      "sourceIp": "192.168.9.0/24",
+      "destinationIp": "10.0.0.0/8"
+    },
+    {
+      "id": "acl-rule-010",
+      "name": "ACL-Block-Malicious-10",
+      "action": "REJECT",
+      "enabled": true,
+      "sourceIp": "192.168.10.0/24",
+      "destinationIp": "10.0.0.0/8"
+    },
+    {
+      "id": "acl-rule-011",
+      "name": "ACL-Block-Malicious-11",
+      "action": "DROP",
+      "enabled": true,
+      "sourceIp": "192.168.11.0/24",
+      "destinationIp": "10.0.0.0/8"
+    },
+    {
+      "id": "acl-rule-012",
+      "name": "ACL-Block-Malicious-12",
+      "action": "REJECT",
+      "enabled": true,
+      "sourceIp": "192.168.12.0/24",
+      "destinationIp": "10.0.0.0/8"
+    },
+    {
+      "id": "acl-rule-013",
+      "name": "ACL-Block-Malicious-13",
+      "action": "DROP",
+      "enabled": true,
+      "sourceIp": "192.168.13.0/24",
+      "destinationIp": "10.0.0.0/8"
+    },
+    {
+      "id": "acl-rule-014",
+      "name": "ACL-Block-Malicious-14",
+      "action": "REJECT",
+      "enabled": true,
+      "sourceIp": "192.168.14.0/24",
+      "destinationIp": "10.0.0.0/8"
+    },
+    {
+      "id": "acl-rule-015",
+      "name": "ACL-Block-Malicious-15",
+      "action": "DROP",
+      "enabled": true,
+      "sourceIp": "192.168.15.0/24",
+      "destinationIp": "10.0.0.0/8"
+    },
+    {
+      "id": "acl-rule-016",
+      "name": "ACL-Block-Malicious-16",
+      "action": "REJECT",
+      "enabled": true,
+      "sourceIp": "192.168.16.0/24",
+      "destinationIp": "10.0.0.0/8"
+    },
+    {
+      "id": "acl-rule-017",
+      "name": "ACL-Block-Malicious-17",
+      "action": "DROP",
+      "enabled": true,
+      "sourceIp": "192.168.17.0/24",
+      "destinationIp": "10.0.0.0/8"
+    },
+    {
+      "id": "acl-rule-018",
+      "name": "ACL-Block-Malicious-18",
+      "action": "REJECT",
+      "enabled": true,
+      "sourceIp": "192.168.18.0/24",
+      "destinationIp": "10.0.0.0/8"
+    },
+    {
+      "id": "acl-rule-019",
+      "name": "ACL-Block-Malicious-19",
+      "action": "DROP",
+      "enabled": true,
+      "sourceIp": "192.168.19.0/24",
+      "destinationIp": "10.0.0.0/8"
+    },
+    {
+      "id": "acl-rule-020",
+      "name": "ACL-Block-Malicious-20",
+      "action": "REJECT",
+      "enabled": true,
+      "sourceIp": "192.168.20.0/24",
+      "destinationIp": "10.0.0.0/8"
+    }
+  ]
+}

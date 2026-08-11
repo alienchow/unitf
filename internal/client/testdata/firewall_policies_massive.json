@@ -1,0 +1,754 @@
+{
+  "data": [
+    {
+      "id": "fw-rule-001",
+      "name": "Rule-001-Filter-Port-81",
+      "enabled": true,
+      "action": {
+        "drop": {}
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4",
+        "protocols": [
+          "TCP",
+          "UDP"
+        ]
+      },
+      "source": {
+        "zoneId": "zone-1",
+        "networkId": "net-corporate-2",
+        "address": "10.1.0.0/24"
+      },
+      "destination": {
+        "zoneId": "zone-2",
+        "port": "81"
+      },
+      "logging": true
+    },
+    {
+      "id": "fw-rule-002",
+      "name": "Rule-002-Filter-Port-82",
+      "enabled": true,
+      "action": {
+        "accept": {}
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4",
+        "protocols": [
+          "TCP",
+          "UDP"
+        ]
+      },
+      "source": {
+        "zoneId": "zone-2",
+        "networkId": "net-corporate-3",
+        "address": "10.2.0.0/24"
+      },
+      "destination": {
+        "zoneId": "zone-3",
+        "port": "82"
+      },
+      "logging": true
+    },
+    {
+      "id": "fw-rule-003",
+      "name": "Rule-003-Filter-Port-83",
+      "enabled": true,
+      "action": {
+        "drop": {}
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4",
+        "protocols": [
+          "TCP",
+          "UDP"
+        ]
+      },
+      "source": {
+        "zoneId": "zone-3",
+        "networkId": "net-corporate-4",
+        "address": "10.3.0.0/24"
+      },
+      "destination": {
+        "zoneId": "zone-4",
+        "port": "83"
+      },
+      "logging": true
+    },
+    {
+      "id": "fw-rule-004",
+      "name": "Rule-004-Filter-Port-84",
+      "enabled": true,
+      "action": {
+        "accept": {}
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4",
+        "protocols": [
+          "TCP",
+          "UDP"
+        ]
+      },
+      "source": {
+        "zoneId": "zone-4",
+        "networkId": "net-corporate-5",
+        "address": "10.4.0.0/24"
+      },
+      "destination": {
+        "zoneId": "zone-0",
+        "port": "84"
+      },
+      "logging": true
+    },
+    {
+      "id": "fw-rule-005",
+      "name": "Rule-005-Filter-Port-85",
+      "enabled": false,
+      "action": {
+        "drop": {}
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4",
+        "protocols": [
+          "TCP",
+          "UDP"
+        ]
+      },
+      "source": {
+        "zoneId": "zone-0",
+        "networkId": "net-corporate-6",
+        "address": "10.5.0.0/24"
+      },
+      "destination": {
+        "zoneId": "zone-1",
+        "port": "85"
+      },
+      "logging": true
+    },
+    {
+      "id": "fw-rule-006",
+      "name": "Rule-006-Filter-Port-86",
+      "enabled": true,
+      "action": {
+        "accept": {}
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4",
+        "protocols": [
+          "TCP",
+          "UDP"
+        ]
+      },
+      "source": {
+        "zoneId": "zone-1",
+        "networkId": "net-corporate-7",
+        "address": "10.6.0.0/24"
+      },
+      "destination": {
+        "zoneId": "zone-2",
+        "port": "86"
+      },
+      "logging": true
+    },
+    {
+      "id": "fw-rule-007",
+      "name": "Rule-007-Filter-Port-87",
+      "enabled": true,
+      "action": {
+        "drop": {}
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4",
+        "protocols": [
+          "TCP",
+          "UDP"
+        ]
+      },
+      "source": {
+        "zoneId": "zone-2",
+        "networkId": "net-corporate-8",
+        "address": "10.7.0.0/24"
+      },
+      "destination": {
+        "zoneId": "zone-3",
+        "port": "87"
+      },
+      "logging": true
+    },
+    {
+      "id": "fw-rule-008",
+      "name": "Rule-008-Filter-Port-88",
+      "enabled": true,
+      "action": {
+        "accept": {}
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4",
+        "protocols": [
+          "TCP",
+          "UDP"
+        ]
+      },
+      "source": {
+        "zoneId": "zone-3",
+        "networkId": "net-corporate-9",
+        "address": "10.8.0.0/24"
+      },
+      "destination": {
+        "zoneId": "zone-4",
+        "port": "88"
+      },
+      "logging": true
+    },
+    {
+      "id": "fw-rule-009",
+      "name": "Rule-009-Filter-Port-89",
+      "enabled": true,
+      "action": {
+        "drop": {}
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4",
+        "protocols": [
+          "TCP",
+          "UDP"
+        ]
+      },
+      "source": {
+        "zoneId": "zone-4",
+        "networkId": "net-corporate-10",
+        "address": "10.9.0.0/24"
+      },
+      "destination": {
+        "zoneId": "zone-0",
+        "port": "89"
+      },
+      "logging": true
+    },
+    {
+      "id": "fw-rule-010",
+      "name": "Rule-010-Filter-Port-90",
+      "enabled": false,
+      "action": {
+        "accept": {}
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4",
+        "protocols": [
+          "TCP",
+          "UDP"
+        ]
+      },
+      "source": {
+        "zoneId": "zone-0",
+        "networkId": "net-corporate-1",
+        "address": "10.10.0.0/24"
+      },
+      "destination": {
+        "zoneId": "zone-1",
+        "port": "90"
+      },
+      "logging": true
+    },
+    {
+      "id": "fw-rule-011",
+      "name": "Rule-011-Filter-Port-91",
+      "enabled": true,
+      "action": {
+        "drop": {}
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4",
+        "protocols": [
+          "TCP",
+          "UDP"
+        ]
+      },
+      "source": {
+        "zoneId": "zone-1",
+        "networkId": "net-corporate-2",
+        "address": "10.11.0.0/24"
+      },
+      "destination": {
+        "zoneId": "zone-2",
+        "port": "91"
+      },
+      "logging": true
+    },
+    {
+      "id": "fw-rule-012",
+      "name": "Rule-012-Filter-Port-92",
+      "enabled": true,
+      "action": {
+        "accept": {}
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4",
+        "protocols": [
+          "TCP",
+          "UDP"
+        ]
+      },
+      "source": {
+        "zoneId": "zone-2",
+        "networkId": "net-corporate-3",
+        "address": "10.12.0.0/24"
+      },
+      "destination": {
+        "zoneId": "zone-3",
+        "port": "92"
+      },
+      "logging": true
+    },
+    {
+      "id": "fw-rule-013",
+      "name": "Rule-013-Filter-Port-93",
+      "enabled": true,
+      "action": {
+        "drop": {}
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4",
+        "protocols": [
+          "TCP",
+          "UDP"
+        ]
+      },
+      "source": {
+        "zoneId": "zone-3",
+        "networkId": "net-corporate-4",
+        "address": "10.13.0.0/24"
+      },
+      "destination": {
+        "zoneId": "zone-4",
+        "port": "93"
+      },
+      "logging": true
+    },
+    {
+      "id": "fw-rule-014",
+      "name": "Rule-014-Filter-Port-94",
+      "enabled": true,
+      "action": {
+        "accept": {}
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4",
+        "protocols": [
+          "TCP",
+          "UDP"
+        ]
+      },
+      "source": {
+        "zoneId": "zone-4",
+        "networkId": "net-corporate-5",
+        "address": "10.14.0.0/24"
+      },
+      "destination": {
+        "zoneId": "zone-0",
+        "port": "94"
+      },
+      "logging": true
+    },
+    {
+      "id": "fw-rule-015",
+      "name": "Rule-015-Filter-Port-95",
+      "enabled": false,
+      "action": {
+        "drop": {}
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4",
+        "protocols": [
+          "TCP",
+          "UDP"
+        ]
+      },
+      "source": {
+        "zoneId": "zone-0",
+        "networkId": "net-corporate-6",
+        "address": "10.15.0.0/24"
+      },
+      "destination": {
+        "zoneId": "zone-1",
+        "port": "95"
+      },
+      "logging": true
+    },
+    {
+      "id": "fw-rule-016",
+      "name": "Rule-016-Filter-Port-96",
+      "enabled": true,
+      "action": {
+        "accept": {}
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4",
+        "protocols": [
+          "TCP",
+          "UDP"
+        ]
+      },
+      "source": {
+        "zoneId": "zone-1",
+        "networkId": "net-corporate-7",
+        "address": "10.16.0.0/24"
+      },
+      "destination": {
+        "zoneId": "zone-2",
+        "port": "96"
+      },
+      "logging": true
+    },
+    {
+      "id": "fw-rule-017",
+      "name": "Rule-017-Filter-Port-97",
+      "enabled": true,
+      "action": {
+        "drop": {}
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4",
+        "protocols": [
+          "TCP",
+          "UDP"
+        ]
+      },
+      "source": {
+        "zoneId": "zone-2",
+        "networkId": "net-corporate-8",
+        "address": "10.17.0.0/24"
+      },
+      "destination": {
+        "zoneId": "zone-3",
+        "port": "97"
+      },
+      "logging": true
+    },
+    {
+      "id": "fw-rule-018",
+      "name": "Rule-018-Filter-Port-98",
+      "enabled": true,
+      "action": {
+        "accept": {}
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4",
+        "protocols": [
+          "TCP",
+          "UDP"
+        ]
+      },
+      "source": {
+        "zoneId": "zone-3",
+        "networkId": "net-corporate-9",
+        "address": "10.18.0.0/24"
+      },
+      "destination": {
+        "zoneId": "zone-4",
+        "port": "98"
+      },
+      "logging": true
+    },
+    {
+      "id": "fw-rule-019",
+      "name": "Rule-019-Filter-Port-99",
+      "enabled": true,
+      "action": {
+        "drop": {}
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4",
+        "protocols": [
+          "TCP",
+          "UDP"
+        ]
+      },
+      "source": {
+        "zoneId": "zone-4",
+        "networkId": "net-corporate-10",
+        "address": "10.19.0.0/24"
+      },
+      "destination": {
+        "zoneId": "zone-0",
+        "port": "99"
+      },
+      "logging": true
+    },
+    {
+      "id": "fw-rule-020",
+      "name": "Rule-020-Filter-Port-100",
+      "enabled": false,
+      "action": {
+        "accept": {}
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4",
+        "protocols": [
+          "TCP",
+          "UDP"
+        ]
+      },
+      "source": {
+        "zoneId": "zone-0",
+        "networkId": "net-corporate-1",
+        "address": "10.20.0.0/24"
+      },
+      "destination": {
+        "zoneId": "zone-1",
+        "port": "100"
+      },
+      "logging": true
+    },
+    {
+      "id": "fw-rule-021",
+      "name": "Rule-021-Filter-Port-101",
+      "enabled": true,
+      "action": {
+        "drop": {}
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4",
+        "protocols": [
+          "TCP",
+          "UDP"
+        ]
+      },
+      "source": {
+        "zoneId": "zone-1",
+        "networkId": "net-corporate-2",
+        "address": "10.21.0.0/24"
+      },
+      "destination": {
+        "zoneId": "zone-2",
+        "port": "101"
+      },
+      "logging": true
+    },
+    {
+      "id": "fw-rule-022",
+      "name": "Rule-022-Filter-Port-102",
+      "enabled": true,
+      "action": {
+        "accept": {}
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4",
+        "protocols": [
+          "TCP",
+          "UDP"
+        ]
+      },
+      "source": {
+        "zoneId": "zone-2",
+        "networkId": "net-corporate-3",
+        "address": "10.22.0.0/24"
+      },
+      "destination": {
+        "zoneId": "zone-3",
+        "port": "102"
+      },
+      "logging": true
+    },
+    {
+      "id": "fw-rule-023",
+      "name": "Rule-023-Filter-Port-103",
+      "enabled": true,
+      "action": {
+        "drop": {}
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4",
+        "protocols": [
+          "TCP",
+          "UDP"
+        ]
+      },
+      "source": {
+        "zoneId": "zone-3",
+        "networkId": "net-corporate-4",
+        "address": "10.23.0.0/24"
+      },
+      "destination": {
+        "zoneId": "zone-4",
+        "port": "103"
+      },
+      "logging": true
+    },
+    {
+      "id": "fw-rule-024",
+      "name": "Rule-024-Filter-Port-104",
+      "enabled": true,
+      "action": {
+        "accept": {}
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4",
+        "protocols": [
+          "TCP",
+          "UDP"
+        ]
+      },
+      "source": {
+        "zoneId": "zone-4",
+        "networkId": "net-corporate-5",
+        "address": "10.24.0.0/24"
+      },
+      "destination": {
+        "zoneId": "zone-0",
+        "port": "104"
+      },
+      "logging": true
+    },
+    {
+      "id": "fw-rule-025",
+      "name": "Rule-025-Filter-Port-105",
+      "enabled": false,
+      "action": {
+        "drop": {}
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4",
+        "protocols": [
+          "TCP",
+          "UDP"
+        ]
+      },
+      "source": {
+        "zoneId": "zone-0",
+        "networkId": "net-corporate-6",
+        "address": "10.25.0.0/24"
+      },
+      "destination": {
+        "zoneId": "zone-1",
+        "port": "105"
+      },
+      "logging": true
+    },
+    {
+      "id": "fw-rule-026",
+      "name": "Rule-026-Filter-Port-106",
+      "enabled": true,
+      "action": {
+        "accept": {}
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4",
+        "protocols": [
+          "TCP",
+          "UDP"
+        ]
+      },
+      "source": {
+        "zoneId": "zone-1",
+        "networkId": "net-corporate-7",
+        "address": "10.26.0.0/24"
+      },
+      "destination": {
+        "zoneId": "zone-2",
+        "port": "106"
+      },
+      "logging": true
+    },
+    {
+      "id": "fw-rule-027",
+      "name": "Rule-027-Filter-Port-107",
+      "enabled": true,
+      "action": {
+        "drop": {}
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4",
+        "protocols": [
+          "TCP",
+          "UDP"
+        ]
+      },
+      "source": {
+        "zoneId": "zone-2",
+        "networkId": "net-corporate-8",
+        "address": "10.27.0.0/24"
+      },
+      "destination": {
+        "zoneId": "zone-3",
+        "port": "107"
+      },
+      "logging": true
+    },
+    {
+      "id": "fw-rule-028",
+      "name": "Rule-028-Filter-Port-108",
+      "enabled": true,
+      "action": {
+        "accept": {}
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4",
+        "protocols": [
+          "TCP",
+          "UDP"
+        ]
+      },
+      "source": {
+        "zoneId": "zone-3",
+        "networkId": "net-corporate-9",
+        "address": "10.28.0.0/24"
+      },
+      "destination": {
+        "zoneId": "zone-4",
+        "port": "108"
+      },
+      "logging": true
+    },
+    {
+      "id": "fw-rule-029",
+      "name": "Rule-029-Filter-Port-109",
+      "enabled": true,
+      "action": {
+        "drop": {}
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4",
+        "protocols": [
+          "TCP",
+          "UDP"
+        ]
+      },
+      "source": {
+        "zoneId": "zone-4",
+        "networkId": "net-corporate-10",
+        "address": "10.29.0.0/24"
+      },
+      "destination": {
+        "zoneId": "zone-0",
+        "port": "109"
+      },
+      "logging": true
+    },
+    {
+      "id": "fw-rule-030",
+      "name": "Rule-030-Filter-Port-110",
+      "enabled": false,
+      "action": {
+        "accept": {}
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4",
+        "protocols": [
+          "TCP",
+          "UDP"
+        ]
+      },
+      "source": {
+        "zoneId": "zone-0",
+        "networkId": "net-corporate-1",
+        "address": "10.30.0.0/24"
+      },
+      "destination": {
+        "zoneId": "zone-1",
+        "port": "110"
+      },
+      "logging": true
+    }
+  ]
+}

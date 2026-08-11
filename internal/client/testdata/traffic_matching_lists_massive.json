@@ -1,0 +1,139 @@
+{
+  "data": [
+    {
+      "id": "tml-1",
+      "name": "Traffic-Group-Category-1",
+      "targets": [
+        "APP-1-A",
+        "APP-1-B",
+        "CATEGORY-1"
+      ]
+    },
+    {
+      "id": "tml-2",
+      "name": "Traffic-Group-Category-2",
+      "targets": [
+        "APP-2-A",
+        "APP-2-B",
+        "CATEGORY-2"
+      ]
+    },
+    {
+      "id": "tml-3",
+      "name": "Traffic-Group-Category-3",
+      "targets": [
+        "APP-3-A",
+        "APP-3-B",
+        "CATEGORY-3"
+      ]
+    },
+    {
+      "id": "tml-4",
+      "name": "Traffic-Group-Category-4",
+      "targets": [
+        "APP-4-A",
+        "APP-4-B",
+        "CATEGORY-4"
+      ]
+    },
+    {
+      "id": "tml-5",
+      "name": "Traffic-Group-Category-5",
+      "targets": [
+        "APP-5-A",
+        "APP-5-B",
+        "CATEGORY-5"
+      ]
+    },
+    {
+      "id": "tml-6",
+      "name": "Traffic-Group-Category-6",
+      "targets": [
+        "APP-6-A",
+        "APP-6-B",
+        "CATEGORY-6"
+      ]
+    },
+    {
+      "id": "tml-7",
+      "name": "Traffic-Group-Category-7",
+      "targets": [
+        "APP-7-A",
+        "APP-7-B",
+        "CATEGORY-7"
+      ]
+    },
+    {
+      "id": "tml-8",
+      "name": "Traffic-Group-Category-8",
+      "targets": [
+        "APP-8-A",
+        "APP-8-B",
+        "CATEGORY-8"
+      ]
+    },
+    {
+      "id": "tml-9",
+      "name": "Traffic-Group-Category-9",
+      "targets": [
+        "APP-9-A",
+        "APP-9-B",
+        "CATEGORY-9"
+      ]
+    },
+    {
+      "id": "tml-10",
+      "name": "Traffic-Group-Category-10",
+      "targets": [
+        "APP-10-A",
+        "APP-10-B",
+        "CATEGORY-10"
+      ]
+    },
+    {
+      "id": "tml-11",
+      "name": "Traffic-Group-Category-11",
+      "targets": [
+        "APP-11-A",
+        "APP-11-B",
+        "CATEGORY-11"
+      ]
+    },
+    {
+      "id": "tml-12",
+      "name": "Traffic-Group-Category-12",
+      "targets": [
+        "APP-12-A",
+        "APP-12-B",
+        "CATEGORY-12"
+      ]
+    },
+    {
+      "id": "tml-13",
+      "name": "Traffic-Group-Category-13",
+      "targets": [
+        "APP-13-A",
+        "APP-13-B",
+        "CATEGORY-13"
+      ]
+    },
+    {
+      "id": "tml-14",
+      "name": "Traffic-Group-Category-14",
+      "targets": [
+        "APP-14-A",
+        "APP-14-B",
+        "CATEGORY-14"
+      ]
+    },
+    {
+      "id": "tml-15",
+      "name": "Traffic-Group-Category-15",
+      "targets": [
+        "APP-15-A",
+        "APP-15-B",
+        "CATEGORY-15"
+      ]
+    }
+  ]
+}

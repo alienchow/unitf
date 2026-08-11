@@ -1,0 +1,257 @@
+[
+  {
+    "id": "cam-1",
+    "name": "G5-Pro-Camera-Zone-1",
+    "videoMode": "HIGH_FPS",
+    "recordEverything": true,
+    "osdSettings": {
+      "isNameEnabled": true,
+      "isDateEnabled": true
+    },
+    "smartDetectSettings": {
+      "objectTypes": [
+        "person",
+        "vehicle",
+        "animal"
+      ]
+    }
+  },
+  {
+    "id": "cam-2",
+    "name": "G5-Pro-Camera-Zone-2",
+    "videoMode": "HIGH_FPS",
+    "recordEverything": true,
+    "osdSettings": {
+      "isNameEnabled": true,
+      "isDateEnabled": true
+    },
+    "smartDetectSettings": {
+      "objectTypes": [
+        "person",
+        "vehicle",
+        "animal"
+      ]
+    }
+  },
+  {
+    "id": "cam-3",
+    "name": "G5-Pro-Camera-Zone-3",
+    "videoMode": "HIGH_FPS",
+    "recordEverything": true,
+    "osdSettings": {
+      "isNameEnabled": true,
+      "isDateEnabled": true
+    },
+    "smartDetectSettings": {
+      "objectTypes": [
+        "person",
+        "vehicle",
+        "animal"
+      ]
+    }
+  },
+  {
+    "id": "cam-4",
+    "name": "G5-Pro-Camera-Zone-4",
+    "videoMode": "HIGH_FPS",
+    "recordEverything": true,
+    "osdSettings": {
+      "isNameEnabled": true,
+      "isDateEnabled": true
+    },
+    "smartDetectSettings": {
+      "objectTypes": [
+        "person",
+        "vehicle",
+        "animal"
+      ]
+    }
+  },
+  {
+    "id": "cam-5",
+    "name": "G5-Pro-Camera-Zone-5",
+    "videoMode": "HIGH_FPS",
+    "recordEverything": true,
+    "osdSettings": {
+      "isNameEnabled": true,
+      "isDateEnabled": true
+    },
+    "smartDetectSettings": {
+      "objectTypes": [
+        "person",
+        "vehicle",
+        "animal"
+      ]
+    }
+  },
+  {
+    "id": "cam-6",
+    "name": "G5-Pro-Camera-Zone-6",
+    "videoMode": "HIGH_FPS",
+    "recordEverything": true,
+    "osdSettings": {
+      "isNameEnabled": true,
+      "isDateEnabled": true
+    },
+    "smartDetectSettings": {
+      "objectTypes": [
+        "person",
+        "vehicle",
+        "animal"
+      ]
+    }
+  },
+  {
+    "id": "cam-7",
+    "name": "G5-Pro-Camera-Zone-7",
+    "videoMode": "HIGH_FPS",
+    "recordEverything": true,
+    "osdSettings": {
+      "isNameEnabled": true,
+      "isDateEnabled": true
+    },
+    "smartDetectSettings": {
+      "objectTypes": [
+        "person",
+        "vehicle",
+        "animal"
+      ]
+    }
+  },
+  {
+    "id": "cam-8",
+    "name": "G5-Pro-Camera-Zone-8",
+    "videoMode": "HIGH_FPS",
+    "recordEverything": true,
+    "osdSettings": {
+      "isNameEnabled": true,
+      "isDateEnabled": true
+    },
+    "smartDetectSettings": {
+      "objectTypes": [
+        "person",
+        "vehicle",
+        "animal"
+      ]
+    }
+  },
+  {
+    "id": "cam-9",
+    "name": "G5-Pro-Camera-Zone-9",
+    "videoMode": "HIGH_FPS",
+    "recordEverything": true,
+    "osdSettings": {
+      "isNameEnabled": true,
+      "isDateEnabled": true
+    },
+    "smartDetectSettings": {
+      "objectTypes": [
+        "person",
+        "vehicle",
+        "animal"
+      ]
+    }
+  },
+  {
+    "id": "cam-10",
+    "name": "G5-Pro-Camera-Zone-10",
+    "videoMode": "HIGH_FPS",
+    "recordEverything": true,
+    "osdSettings": {
+      "isNameEnabled": true,
+      "isDateEnabled": true
+    },
+    "smartDetectSettings": {
+      "objectTypes": [
+        "person",
+        "vehicle",
+        "animal"
+      ]
+    }
+  },
+  {
+    "id": "cam-11",
+    "name": "G5-Pro-Camera-Zone-11",
+    "videoMode": "HIGH_FPS",
+    "recordEverything": true,
+    "osdSettings": {
+      "isNameEnabled": true,
+      "isDateEnabled": true
+    },
+    "smartDetectSettings": {
+      "objectTypes": [
+        "person",
+        "vehicle",
+        "animal"
+      ]
+    }
+  },
+  {
+    "id": "cam-12",
+    "name": "G5-Pro-Camera-Zone-12",
+    "videoMode": "HIGH_FPS",
+    "recordEverything": true,
+    "osdSettings": {
+      "isNameEnabled": true,
+      "isDateEnabled": true
+    },
+    "smartDetectSettings": {
+      "objectTypes": [
+        "person",
+        "vehicle",
+        "animal"
+      ]
+    }
+  },
+  {
+    "id": "cam-13",
+    "name": "G5-Pro-Camera-Zone-13",
+    "videoMode": "HIGH_FPS",
+    "recordEverything": true,
+    "osdSettings": {
+      "isNameEnabled": true,
+      "isDateEnabled": true
+    },
+    "smartDetectSettings": {
+      "objectTypes": [
+        "person",
+        "vehicle",
+        "animal"
+      ]
+    }
+  },
+  {
+    "id": "cam-14",
+    "name": "G5-Pro-Camera-Zone-14",
+    "videoMode": "HIGH_FPS",
+    "recordEverything": true,
+    "osdSettings": {
+      "isNameEnabled": true,
+      "isDateEnabled": true
+    },
+    "smartDetectSettings": {
+      "objectTypes": [
+        "person",
+        "vehicle",
+        "animal"
+      ]
+    }
+  },
+  {
+    "id": "cam-15",
+    "name": "G5-Pro-Camera-Zone-15",
+    "videoMode": "HIGH_FPS",
+    "recordEverything": true,
+    "osdSettings": {
+      "isNameEnabled": true,
+      "isDateEnabled": true
+    },
+    "smartDetectSettings": {
+      "objectTypes": [
+        "person",
+        "vehicle",
+        "animal"
+      ]
+    }
+  }
+]

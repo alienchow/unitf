@@ -1,0 +1,124 @@
+{
+  "data": [
+    {
+      "id": "zone-1",
+      "name": "Security-Zone-1",
+      "networkIds": [
+        "net-corporate-1",
+        "net-corporate-3"
+      ]
+    },
+    {
+      "id": "zone-2",
+      "name": "Security-Zone-2",
+      "networkIds": [
+        "net-corporate-2",
+        "net-corporate-4"
+      ]
+    },
+    {
+      "id": "zone-3",
+      "name": "Security-Zone-3",
+      "networkIds": [
+        "net-corporate-3",
+        "net-corporate-5"
+      ]
+    },
+    {
+      "id": "zone-4",
+      "name": "Security-Zone-4",
+      "networkIds": [
+        "net-corporate-4",
+        "net-corporate-6"
+      ]
+    },
+    {
+      "id": "zone-5",
+      "name": "Security-Zone-5",
+      "networkIds": [
+        "net-corporate-5",
+        "net-corporate-7"
+      ]
+    },
+    {
+      "id": "zone-6",
+      "name": "Security-Zone-6",
+      "networkIds": [
+        "net-corporate-6",
+        "net-corporate-8"
+      ]
+    },
+    {
+      "id": "zone-7",
+      "name": "Security-Zone-7",
+      "networkIds": [
+        "net-corporate-7",
+        "net-corporate-9"
+      ]
+    },
+    {
+      "id": "zone-8",
+      "name": "Security-Zone-8",
+      "networkIds": [
+        "net-corporate-8",
+        "net-corporate-10"
+      ]
+    },
+    {
+      "id": "zone-9",
+      "name": "Security-Zone-9",
+      "networkIds": [
+        "net-corporate-9",
+        "net-corporate-11"
+      ]
+    },
+    {
+      "id": "zone-10",
+      "name": "Security-Zone-10",
+      "networkIds": [
+        "net-corporate-10",
+        "net-corporate-12"
+      ]
+    },
+    {
+      "id": "zone-11",
+      "name": "Security-Zone-11",
+      "networkIds": [
+        "net-corporate-11",
+        "net-corporate-13"
+      ]
+    },
+    {
+      "id": "zone-12",
+      "name": "Security-Zone-12",
+      "networkIds": [
+        "net-corporate-12",
+        "net-corporate-14"
+      ]
+    },
+    {
+      "id": "zone-13",
+      "name": "Security-Zone-13",
+      "networkIds": [
+        "net-corporate-13",
+        "net-corporate-15"
+      ]
+    },
+    {
+      "id": "zone-14",
+      "name": "Security-Zone-14",
+      "networkIds": [
+        "net-corporate-14",
+        "net-corporate-16"
+      ]
+    },
+    {
+      "id": "zone-15",
+      "name": "Security-Zone-15",
+      "networkIds": [
+        "net-corporate-15",
+        "net-corporate-17"
+      ]
+    }
+  ]
+}

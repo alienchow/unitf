@@ -1,0 +1,12 @@
+{
+  "data": [
+    {
+      "id": "fw-1",
+      "name": "Allow DNS",
+      "enabled": true,
+      "action": {
+        "accept": {}
+      }
+    }
+  ]
+}
