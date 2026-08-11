@@ -16,43 +16,43 @@ type WifiBroadcastDto struct {
 }
 
 func (c *Client) CreateWifiBroadcast(ctx context.Context, siteID string, req *WifiBroadcastDto) (*WifiBroadcastDto, error) {
-	path := "/proxy/network/integration/v1/sites/" + siteID + "/wifi-broadcasts"
+	path := "/v1/sites/" + siteID + "/wifi-broadcasts"
 	var resp WifiBroadcastDto
-	if err := c.DoRequest(ctx, "POST", path, req, &resp); err != nil {
+	if err := c.Network.Request(ctx, "POST", path, req, &resp); err != nil {
 		return nil, err
 	}
 	return &resp, nil
 }
 
 func (c *Client) GetWifiBroadcast(ctx context.Context, siteID, wlanID string) (*WifiBroadcastDto, error) {
-	path := "/proxy/network/integration/v1/sites/" + siteID + "/wifi-broadcasts/" + wlanID
+	path := "/v1/sites/" + siteID + "/wifi-broadcasts/" + wlanID
 	var resp WifiBroadcastDto
-	if err := c.DoRequest(ctx, "GET", path, nil, &resp); err != nil {
+	if err := c.Network.Request(ctx, "GET", path, nil, &resp); err != nil {
 		return nil, err
 	}
 	return &resp, nil
 }
 
 func (c *Client) UpdateWifiBroadcast(ctx context.Context, siteID, wlanID string, req *WifiBroadcastDto) (*WifiBroadcastDto, error) {
-	path := "/proxy/network/integration/v1/sites/" + siteID + "/wifi-broadcasts/" + wlanID
+	path := "/v1/sites/" + siteID + "/wifi-broadcasts/" + wlanID
 	var resp WifiBroadcastDto
-	if err := c.DoRequest(ctx, "PUT", path, req, &resp); err != nil {
+	if err := c.Network.Request(ctx, "PUT", path, req, &resp); err != nil {
 		return nil, err
 	}
 	return &resp, nil
 }
 
 func (c *Client) DeleteWifiBroadcast(ctx context.Context, siteID, wlanID string) error {
-	path := "/proxy/network/integration/v1/sites/" + siteID + "/wifi-broadcasts/" + wlanID
-	return c.DoRequest(ctx, "DELETE", path, nil, nil)
+	path := "/v1/sites/" + siteID + "/wifi-broadcasts/" + wlanID
+	return c.Network.Request(ctx, "DELETE", path, nil, nil)
 }
 
 func (c *Client) ListWifiBroadcasts(ctx context.Context, siteID string) ([]WifiBroadcastDto, error) {
-	path := "/proxy/network/integration/v1/sites/" + siteID + "/wifi-broadcasts"
+	path := "/v1/sites/" + siteID + "/wifi-broadcasts"
 	var resp struct {
 		Data []WifiBroadcastDto `json:"data"`
 	}
-	if err := c.DoRequest(ctx, "GET", path, nil, &resp); err != nil {
+	if err := c.Network.Request(ctx, "GET", path, nil, &resp); err != nil {
 		return nil, err
 	}
 	return resp.Data, nil

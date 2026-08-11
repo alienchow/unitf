@@ -17,9 +17,9 @@ type WanOverviewPage struct {
 }
 
 func (c *Client) ListWans(ctx context.Context, siteID string) ([]WanOverview, error) {
-	path := "/proxy/network/integration/v1/sites/" + siteID + "/wans"
+	path := "/v1/sites/" + siteID + "/wans"
 	var page WanOverviewPage
-	if err := c.DoRequest(ctx, "GET", path, nil, &page); err != nil {
+	if err := c.Network.Request(ctx, "GET", path, nil, &page); err != nil {
 		return nil, err
 	}
 	return page.Data, nil

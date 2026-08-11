@@ -24,7 +24,7 @@ func (c *Client) AdoptDevice(ctx context.Context, siteID string, mac string) err
 		"cmd": "adopt",
 		"mac": mac,
 	}
-	return c.DoRequest(ctx, "POST", path, payload, nil)
+	return c.Network.Request(ctx, "POST", path, payload, nil)
 }
 
 func (c *Client) ForgetDevice(ctx context.Context, siteID string, mac string) error {
@@ -33,7 +33,7 @@ func (c *Client) ForgetDevice(ctx context.Context, siteID string, mac string) er
 		"cmd": "forget-dev",
 		"mac": mac,
 	}
-	return c.DoRequest(ctx, "POST", path, payload, nil)
+	return c.Network.Request(ctx, "POST", path, payload, nil)
 }
 
 func (c *Client) GetDevice(ctx context.Context, siteID string, mac string) (*DeviceDto, error) {
@@ -41,7 +41,7 @@ func (c *Client) GetDevice(ctx context.Context, siteID string, mac string) (*Dev
 	var resp struct {
 		Data []DeviceDto `json:"data"`
 	}
-	if err := c.DoRequest(ctx, "GET", path, nil, &resp); err != nil {
+	if err := c.Network.Request(ctx, "GET", path, nil, &resp); err != nil {
 		return nil, err
 	}
 	if len(resp.Data) > 0 {
@@ -55,7 +55,7 @@ func (c *Client) UpdateDevice(ctx context.Context, siteID string, deviceID strin
 	var resp struct {
 		Data []DeviceDto `json:"data"`
 	}
-	if err := c.DoRequest(ctx, "PUT", path, req, &resp); err != nil {
+	if err := c.Network.Request(ctx, "PUT", path, req, &resp); err != nil {
 		return nil, err
 	}
 	if len(resp.Data) > 0 {

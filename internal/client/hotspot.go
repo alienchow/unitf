@@ -26,7 +26,7 @@ func (c *Client) CreateHotspotVoucher(ctx context.Context, siteID string, req *H
 	}
 	// Note: API returns a create_time which must be used to fetch the exact voucher later.
 	// For simplicity in this mock integration, we ignore the response data and just return success.
-	return c.DoRequest(ctx, "POST", path, payload, nil)
+	return c.Network.Request(ctx, "POST", path, payload, nil)
 }
 
 func (c *Client) GetHotspotVoucher(ctx context.Context, siteID string, id string) (*HotspotVoucherDto, error) {
@@ -34,7 +34,7 @@ func (c *Client) GetHotspotVoucher(ctx context.Context, siteID string, id string
 	var resp struct {
 		Data []HotspotVoucherDto `json:"data"`
 	}
-	if err := c.DoRequest(ctx, "GET", path, nil, &resp); err != nil {
+	if err := c.Network.Request(ctx, "GET", path, nil, &resp); err != nil {
 		return nil, err
 	}
 	for _, v := range resp.Data {
@@ -51,5 +51,5 @@ func (c *Client) DeleteHotspotVoucher(ctx context.Context, siteID string, id str
 		"cmd": "delete-voucher",
 		"_id": id,
 	}
-	return c.DoRequest(ctx, "POST", path, payload, nil)
+	return c.Network.Request(ctx, "POST", path, payload, nil)
 }

@@ -17,9 +17,9 @@ type SiteOverviewPage struct {
 }
 
 func (c *Client) ListSites(ctx context.Context) ([]SiteOverview, error) {
-	path := "/proxy/network/integration/v1/sites"
+	path := "/v1/sites"
 	var page SiteOverviewPage
-	if err := c.DoRequest(ctx, "GET", path, nil, &page); err != nil {
+	if err := c.Network.Request(ctx, "GET", path, nil, &page); err != nil {
 		return nil, err
 	}
 	return page.Data, nil
