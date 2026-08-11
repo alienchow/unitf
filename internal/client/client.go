@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"path"
 	"strings"
 	"time"
 )
@@ -16,6 +17,8 @@ type Client struct {
 	Host       string
 	APIKey     string
 	HTTPClient *http.Client
+	Network    *NetworkHandler
+	Protect    *ProtectHandler
 }
 
 type APIError struct {
@@ -63,11 +66,14 @@ func NewClient(host, apiKey string, insecure bool) (*Client, error) {
 		Timeout:   30 * time.Second,
 	}
 
-	return &Client{
+	c := &Client{
 		Host:       host,
 		APIKey:     apiKey,
 		HTTPClient: httpClient,
-	}, nil
+	}
+	c.Network = &NetworkHandler{client: c}
+	c.Protect = &ProtectHandler{client: c}
+	return c, nil
 }
 
 func (c *Client) DoRequest(ctx context.Context, method, path string, body interface{}, out interface{}) error {
@@ -146,4 +152,22 @@ func (c *Client) DoRequest(ctx context.Context, method, path string, body interf
 	}
 
 	return nil
+}
+
+type NetworkHandler struct {
+	client *Client
+}
+
+func (h *NetworkHandler) Request(ctx context.Context, method, apiPath string, body interface{}, out interface{}) error {
+	fullPath := path.Join("/proxy/network/integration", apiPath)
+	return h.client.DoRequest(ctx, method, fullPath, body, out)
+}
+
+type ProtectHandler struct {
+	client *Client
+}
+
+func (h *ProtectHandler) Request(ctx context.Context, method, apiPath string, body interface{}, out interface{}) error {
+	fullPath := path.Join("/proxy/protect/integration", apiPath)
+	return h.client.DoRequest(ctx, method, fullPath, body, out)
 }
