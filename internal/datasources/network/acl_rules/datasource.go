@@ -4,23 +4,16 @@ import (
 	"context"
 
 	"github.com/alienchow/unitf/internal/client"
+	"github.com/alienchow/unitf/internal/datasources"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-var (
-	_ datasource.DataSource              = &AclRulesDataSource{}
-	_ datasource.DataSourceWithConfigure = &AclRulesDataSource{}
-)
-
-type AclRulesDataSource struct {
-	client client.NetworkClient
-}
-
 type AclRulesDataSourceModel struct {
-	SiteID types.String   `tfsdk:"site_id"`
-	Items  []AclruleModel `tfsdk:"items"`
+	SiteID types.String              `tfsdk:"site_id"`
+	Filter []datasources.FilterModel `tfsdk:"filter"`
+	Items  []AclruleModel            `tfsdk:"items"`
 }
 
 type AclruleModel struct {
@@ -29,74 +22,62 @@ type AclruleModel struct {
 }
 
 func NewAclRulesDataSource() datasource.DataSource {
-	return &AclRulesDataSource{}
-}
-
-func (d *AclRulesDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_acl_rules"
-}
-
-func (d *AclRulesDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		Description: "Data source for listing acl_rules.",
-		Attributes: map[string]schema.Attribute{
-			"site_id": schema.StringAttribute{
-				Required:    true,
-				Description: "Site ID.",
-			},
-			"items": schema.ListNestedAttribute{
-				Computed:    true,
-				Description: "List of items.",
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"id": schema.StringAttribute{
-							Computed:    true,
-							Description: "Unique UUID.",
+	return &datasources.GenericDataSource[AclRulesDataSourceModel]{
+		TypeName: "network_acl_rules",
+		TFSchema: schema.Schema{
+			Description: "Data source for listing acl_rules.",
+			Attributes: map[string]schema.Attribute{
+				"site_id": schema.StringAttribute{
+					Required:    true,
+					Description: "Site ID.",
+				},
+				"filter": schema.ListNestedAttribute{
+					Optional:    true,
+					Description: "Filters.",
+					NestedObject: schema.NestedAttributeObject{
+						Attributes: map[string]schema.Attribute{
+							"name": schema.StringAttribute{
+								Required: true,
+							},
+							"values": schema.ListAttribute{
+								ElementType: types.StringType,
+								Required:    true,
+							},
 						},
-						"name": schema.StringAttribute{
-							Computed:    true,
-							Description: "Name.",
+					},
+				},
+				"items": schema.ListNestedAttribute{
+					Computed:    true,
+					Description: "List of items.",
+					NestedObject: schema.NestedAttributeObject{
+						Attributes: map[string]schema.Attribute{
+							"id": schema.StringAttribute{
+								Computed:    true,
+								Description: "Unique UUID.",
+							},
+							"name": schema.StringAttribute{
+								Computed:    true,
+								Description: "Name.",
+							},
 						},
 					},
 				},
 			},
 		},
-	}
-}
+		ReadFunc: func(ctx context.Context, c *client.Client, model *AclRulesDataSourceModel) error {
+			items, err := c.Network.ListAclRules(ctx, model.SiteID.ValueString())
+			if err != nil {
+				return err
+			}
 
-func (d *AclRulesDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-	if req.ProviderData == nil {
-		return
+			model.Items = make([]AclruleModel, 0, len(items))
+			for _, n := range items {
+				model.Items = append(model.Items, AclruleModel{
+					ID:   types.StringValue(n.ID),
+					Name: types.StringValue(n.Name),
+				})
+			}
+			return nil
+		},
 	}
-	c, ok := req.ProviderData.(client.NetworkClient)
-	if !ok {
-		resp.Diagnostics.AddError("Unexpected Data Source Configure Type", "Expected client.NetworkClient")
-		return
-	}
-	d.client = c
-}
-
-func (d *AclRulesDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var state AclRulesDataSourceModel
-
-	resp.Diagnostics.Append(req.Config.Get(ctx, &state)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	items, err := d.client.ListAclRules(ctx, state.SiteID.ValueString())
-	if err != nil {
-		resp.Diagnostics.AddError("Error Reading acl_rules", err.Error())
-		return
-	}
-
-	state.Items = make([]AclruleModel, 0, len(items))
-	for _, n := range items {
-		state.Items = append(state.Items, AclruleModel{
-			ID:   types.StringValue(n.ID),
-			Name: types.StringValue(n.Name),
-		})
-	}
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }

@@ -4,23 +4,16 @@ import (
 	"context"
 
 	"github.com/alienchow/unitf/internal/client"
+	"github.com/alienchow/unitf/internal/datasources"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-var (
-	_ datasource.DataSource              = &DpiApplicationsDataSource{}
-	_ datasource.DataSourceWithConfigure = &DpiApplicationsDataSource{}
-)
-
-type DpiApplicationsDataSource struct {
-	client client.NetworkClient
-}
-
 type DpiApplicationsDataSourceModel struct {
-	Items  []DpiApplicationModel `tfsdk:"items"`
-	SiteID types.String          `tfsdk:"site_id"`
+	SiteID types.String              `tfsdk:"site_id"`
+	Filter []datasources.FilterModel `tfsdk:"filter"`
+	Items  []DpiApplicationModel     `tfsdk:"items"`
 }
 
 type DpiApplicationModel struct {
@@ -28,67 +21,57 @@ type DpiApplicationModel struct {
 }
 
 func NewDpiApplicationsDataSource() datasource.DataSource {
-	return &DpiApplicationsDataSource{}
-}
-
-func (d *DpiApplicationsDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_dpi_applications"
-}
-
-func (d *DpiApplicationsDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		Description: "Data source for listing DpiApplications.",
-		Attributes: map[string]schema.Attribute{
-			"items": schema.ListNestedAttribute{
-				Computed:    true,
-				Description: "List of items.",
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"id": schema.StringAttribute{
-							Computed:    true,
-							Description: "Unique ID.",
+	return &datasources.GenericDataSource[DpiApplicationsDataSourceModel]{
+		TypeName: "network_dpi_applications",
+		TFSchema: schema.Schema{
+			Description: "Data source for listing DpiApplications.",
+			Attributes: map[string]schema.Attribute{
+				"site_id": schema.StringAttribute{
+					Required:    true,
+					Description: "Site ID.",
+				},
+				"filter": schema.ListNestedAttribute{
+					Optional:    true,
+					Description: "Filters.",
+					NestedObject: schema.NestedAttributeObject{
+						Attributes: map[string]schema.Attribute{
+							"name": schema.StringAttribute{
+								Required: true,
+							},
+							"values": schema.ListAttribute{
+								ElementType: types.StringType,
+								Required:    true,
+							},
+						},
+					},
+				},
+				"items": schema.ListNestedAttribute{
+					Computed:    true,
+					Description: "List of items.",
+					NestedObject: schema.NestedAttributeObject{
+						Attributes: map[string]schema.Attribute{
+							"id": schema.StringAttribute{
+								Computed:    true,
+								Description: "Unique ID.",
+							},
 						},
 					},
 				},
 			},
-			"site_id": schema.StringAttribute{
-				Required:    true,
-				Description: "Site ID.",
-			},
+		},
+		ReadFunc: func(ctx context.Context, c *client.Client, model *DpiApplicationsDataSourceModel) error {
+			items, err := c.Network.ListDpiApplications(ctx, model.SiteID.ValueString())
+			if err != nil {
+				return err
+			}
+
+			model.Items = make([]DpiApplicationModel, 0, len(items))
+			for _, i := range items {
+				model.Items = append(model.Items, DpiApplicationModel{
+					ID: types.StringValue(i.ID),
+				})
+			}
+			return nil
 		},
 	}
-}
-
-func (d *DpiApplicationsDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-	if req.ProviderData == nil {
-		return
-	}
-	c, ok := req.ProviderData.(client.NetworkClient)
-	if !ok {
-		resp.Diagnostics.AddError("Unexpected Data Source Configure Type", "Expected client.NetworkClient")
-		return
-	}
-	d.client = c
-}
-
-func (d *DpiApplicationsDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var state DpiApplicationsDataSourceModel
-	resp.Diagnostics.Append(req.Config.Get(ctx, &state)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	items, err := d.client.ListDpiApplications(ctx, state.SiteID.ValueString())
-	if err != nil {
-		resp.Diagnostics.AddError("Error Reading DpiApplications", err.Error())
-		return
-	}
-
-	for _, i := range items {
-		state.Items = append(state.Items, DpiApplicationModel{
-			ID: types.StringValue(i.ID),
-		})
-	}
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }

@@ -4,23 +4,16 @@ import (
 	"context"
 
 	"github.com/alienchow/unitf/internal/client"
+	"github.com/alienchow/unitf/internal/datasources"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-var (
-	_ datasource.DataSource              = &FirewallZonesDataSource{}
-	_ datasource.DataSourceWithConfigure = &FirewallZonesDataSource{}
-)
-
-type FirewallZonesDataSource struct {
-	client client.NetworkClient
-}
-
 type FirewallZonesDataSourceModel struct {
-	SiteID types.String        `tfsdk:"site_id"`
-	Items  []FirewallzoneModel `tfsdk:"items"`
+	SiteID types.String              `tfsdk:"site_id"`
+	Filter []datasources.FilterModel `tfsdk:"filter"`
+	Items  []FirewallzoneModel       `tfsdk:"items"`
 }
 
 type FirewallzoneModel struct {
@@ -29,74 +22,62 @@ type FirewallzoneModel struct {
 }
 
 func NewFirewallZonesDataSource() datasource.DataSource {
-	return &FirewallZonesDataSource{}
-}
-
-func (d *FirewallZonesDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_firewall_zones"
-}
-
-func (d *FirewallZonesDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		Description: "Data source for listing firewall_zones.",
-		Attributes: map[string]schema.Attribute{
-			"site_id": schema.StringAttribute{
-				Required:    true,
-				Description: "Site ID.",
-			},
-			"items": schema.ListNestedAttribute{
-				Computed:    true,
-				Description: "List of items.",
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"id": schema.StringAttribute{
-							Computed:    true,
-							Description: "Unique UUID.",
+	return &datasources.GenericDataSource[FirewallZonesDataSourceModel]{
+		TypeName: "network_firewall_zones",
+		TFSchema: schema.Schema{
+			Description: "Data source for listing firewall_zones.",
+			Attributes: map[string]schema.Attribute{
+				"site_id": schema.StringAttribute{
+					Required:    true,
+					Description: "Site ID.",
+				},
+				"filter": schema.ListNestedAttribute{
+					Optional:    true,
+					Description: "Filters.",
+					NestedObject: schema.NestedAttributeObject{
+						Attributes: map[string]schema.Attribute{
+							"name": schema.StringAttribute{
+								Required: true,
+							},
+							"values": schema.ListAttribute{
+								ElementType: types.StringType,
+								Required:    true,
+							},
 						},
-						"name": schema.StringAttribute{
-							Computed:    true,
-							Description: "Name.",
+					},
+				},
+				"items": schema.ListNestedAttribute{
+					Computed:    true,
+					Description: "List of items.",
+					NestedObject: schema.NestedAttributeObject{
+						Attributes: map[string]schema.Attribute{
+							"id": schema.StringAttribute{
+								Computed:    true,
+								Description: "Unique UUID.",
+							},
+							"name": schema.StringAttribute{
+								Computed:    true,
+								Description: "Name.",
+							},
 						},
 					},
 				},
 			},
 		},
-	}
-}
+		ReadFunc: func(ctx context.Context, c *client.Client, model *FirewallZonesDataSourceModel) error {
+			items, err := c.Network.ListFirewallZones(ctx, model.SiteID.ValueString())
+			if err != nil {
+				return err
+			}
 
-func (d *FirewallZonesDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-	if req.ProviderData == nil {
-		return
+			model.Items = make([]FirewallzoneModel, 0, len(items))
+			for _, n := range items {
+				model.Items = append(model.Items, FirewallzoneModel{
+					ID:   types.StringValue(n.ID),
+					Name: types.StringValue(n.Name),
+				})
+			}
+			return nil
+		},
 	}
-	c, ok := req.ProviderData.(client.NetworkClient)
-	if !ok {
-		resp.Diagnostics.AddError("Unexpected Data Source Configure Type", "Expected client.NetworkClient")
-		return
-	}
-	d.client = c
-}
-
-func (d *FirewallZonesDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var state FirewallZonesDataSourceModel
-
-	resp.Diagnostics.Append(req.Config.Get(ctx, &state)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	items, err := d.client.ListFirewallZones(ctx, state.SiteID.ValueString())
-	if err != nil {
-		resp.Diagnostics.AddError("Error Reading firewall_zones", err.Error())
-		return
-	}
-
-	state.Items = make([]FirewallzoneModel, 0, len(items))
-	for _, n := range items {
-		state.Items = append(state.Items, FirewallzoneModel{
-			ID:   types.StringValue(n.ID),
-			Name: types.StringValue(n.Name),
-		})
-	}
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }

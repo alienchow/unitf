@@ -4,6 +4,6 @@ provider "unifi" {
 	api_key = "test-key"
 }
 
-data "unifi_lags" "test" {
+data "unifi_network_lags" "test" {
 	site_id = "default"
 }

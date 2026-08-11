@@ -4,6 +4,6 @@ provider "unifi" {
 	api_key = "test-key"
 }
 
-data "unifi_radius_profiles" "test" {
+data "unifi_network_radius_profiles" "test" {
 	site_id = "default"
 }

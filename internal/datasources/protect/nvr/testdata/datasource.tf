@@ -4,5 +4,5 @@ provider "unifi" {
 	api_key = "test-key"
 }
 
-data "unifi_nvr" "test" {
+data "unifi_protect_nvr" "test" {
 }

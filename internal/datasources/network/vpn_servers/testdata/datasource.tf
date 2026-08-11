@@ -4,6 +4,6 @@ provider "unifi" {
 	api_key = "test-key"
 }
 
-data "unifi_vpn_servers" "test" {
+data "unifi_network_vpn_servers" "test" {
 	site_id = "default"
 }

@@ -4,23 +4,16 @@ import (
 	"context"
 
 	"github.com/alienchow/unitf/internal/client"
+	"github.com/alienchow/unitf/internal/datasources"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-var (
-	_ datasource.DataSource              = &DeviceStatisticsDataSource{}
-	_ datasource.DataSourceWithConfigure = &DeviceStatisticsDataSource{}
-)
-
-type DeviceStatisticsDataSource struct {
-	client client.NetworkClient
-}
-
 type DeviceStatisticsDataSourceModel struct {
-	Items  []DeviceStatisticModel `tfsdk:"items"`
-	SiteID types.String           `tfsdk:"site_id"`
+	SiteID types.String              `tfsdk:"site_id"`
+	Filter []datasources.FilterModel `tfsdk:"filter"`
+	Items  []DeviceStatisticModel    `tfsdk:"items"`
 }
 
 type DeviceStatisticModel struct {
@@ -28,67 +21,57 @@ type DeviceStatisticModel struct {
 }
 
 func NewDeviceStatisticsDataSource() datasource.DataSource {
-	return &DeviceStatisticsDataSource{}
-}
-
-func (d *DeviceStatisticsDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_device_statistics"
-}
-
-func (d *DeviceStatisticsDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		Description: "Data source for listing DeviceStatistics.",
-		Attributes: map[string]schema.Attribute{
-			"items": schema.ListNestedAttribute{
-				Computed:    true,
-				Description: "List of items.",
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"id": schema.StringAttribute{
-							Computed:    true,
-							Description: "Unique ID.",
+	return &datasources.GenericDataSource[DeviceStatisticsDataSourceModel]{
+		TypeName: "network_device_statistics",
+		TFSchema: schema.Schema{
+			Description: "Data source for listing DeviceStatistics.",
+			Attributes: map[string]schema.Attribute{
+				"site_id": schema.StringAttribute{
+					Required:    true,
+					Description: "Site ID.",
+				},
+				"filter": schema.ListNestedAttribute{
+					Optional:    true,
+					Description: "Filters.",
+					NestedObject: schema.NestedAttributeObject{
+						Attributes: map[string]schema.Attribute{
+							"name": schema.StringAttribute{
+								Required: true,
+							},
+							"values": schema.ListAttribute{
+								ElementType: types.StringType,
+								Required:    true,
+							},
+						},
+					},
+				},
+				"items": schema.ListNestedAttribute{
+					Computed:    true,
+					Description: "List of items.",
+					NestedObject: schema.NestedAttributeObject{
+						Attributes: map[string]schema.Attribute{
+							"id": schema.StringAttribute{
+								Computed:    true,
+								Description: "Unique ID.",
+							},
 						},
 					},
 				},
 			},
-			"site_id": schema.StringAttribute{
-				Required:    true,
-				Description: "Site ID.",
-			},
+		},
+		ReadFunc: func(ctx context.Context, c *client.Client, model *DeviceStatisticsDataSourceModel) error {
+			items, err := c.Network.ListDeviceStatistics(ctx, model.SiteID.ValueString())
+			if err != nil {
+				return err
+			}
+
+			model.Items = make([]DeviceStatisticModel, 0, len(items))
+			for _, i := range items {
+				model.Items = append(model.Items, DeviceStatisticModel{
+					ID: types.StringValue(i.ID),
+				})
+			}
+			return nil
 		},
 	}
-}
-
-func (d *DeviceStatisticsDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-	if req.ProviderData == nil {
-		return
-	}
-	c, ok := req.ProviderData.(client.NetworkClient)
-	if !ok {
-		resp.Diagnostics.AddError("Unexpected Data Source Configure Type", "Expected client.NetworkClient")
-		return
-	}
-	d.client = c
-}
-
-func (d *DeviceStatisticsDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var state DeviceStatisticsDataSourceModel
-	resp.Diagnostics.Append(req.Config.Get(ctx, &state)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	items, err := d.client.ListDeviceStatistics(ctx, state.SiteID.ValueString())
-	if err != nil {
-		resp.Diagnostics.AddError("Error Reading DeviceStatistics", err.Error())
-		return
-	}
-
-	for _, i := range items {
-		state.Items = append(state.Items, DeviceStatisticModel{
-			ID: types.StringValue(i.ID),
-		})
-	}
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }

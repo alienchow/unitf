@@ -121,18 +121,32 @@ func (p *UniFiProvider) Configure(ctx context.Context, req provider.ConfigureReq
 		return
 	}
 
+	// During plan phase, values may be unknown. We cannot configure the client
+	// if any required attributes are unknown.
+	if config.Host.IsUnknown() || config.APIKey.IsUnknown() {
+		return
+	}
+
 	host := os.Getenv("UNIFI_HOST")
-	if !config.Host.IsNull() {
+	if !config.Host.IsNull() && !config.Host.IsUnknown() {
 		host = config.Host.ValueString()
 	}
 
 	apiKey := os.Getenv("UNIFI_API_KEY")
-	if !config.APIKey.IsNull() {
+	if !config.APIKey.IsNull() && !config.APIKey.IsUnknown() {
 		apiKey = config.APIKey.ValueString()
 	}
 
+	siteID := os.Getenv("UNIFI_SITE_ID")
+	if !config.SiteID.IsNull() && !config.SiteID.IsUnknown() {
+		siteID = config.SiteID.ValueString()
+	}
+	if siteID == "" {
+		siteID = "default"
+	}
+
 	insecure := os.Getenv("UNIFI_INSECURE") == "true" || os.Getenv("UNIFI_INSECURE") == "1"
-	if !config.Insecure.IsNull() {
+	if !config.Insecure.IsNull() && !config.Insecure.IsUnknown() {
 		insecure = config.Insecure.ValueBool()
 	}
 
@@ -146,7 +160,7 @@ func (p *UniFiProvider) Configure(ctx context.Context, req provider.ConfigureReq
 		return
 	}
 
-	apiClient, err := client.NewClient(host, apiKey, insecure)
+	apiClient, err := client.NewClient(host, apiKey, siteID, insecure)
 	if err != nil {
 		resp.Diagnostics.AddError("Failed to Initialize UniFi Client", err.Error())
 		return

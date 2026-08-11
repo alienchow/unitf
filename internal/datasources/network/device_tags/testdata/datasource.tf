@@ -4,6 +4,6 @@ provider "unifi" {
 	api_key = "test-key"
 }
 
-data "unifi_device_tags" "test" {
+data "unifi_network_device_tags" "test" {
 	site_id = "default"
 }

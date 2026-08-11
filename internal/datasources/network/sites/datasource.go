@@ -4,22 +4,15 @@ import (
 	"context"
 
 	"github.com/alienchow/unitf/internal/client"
+	"github.com/alienchow/unitf/internal/datasources"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-var (
-	_ datasource.DataSource              = &SitesDataSource{}
-	_ datasource.DataSourceWithConfigure = &SitesDataSource{}
-)
-
-type SitesDataSource struct {
-	client client.NetworkClient
-}
-
 type SitesDataSourceModel struct {
-	Sites []SiteModel `tfsdk:"sites"`
+	Filter []datasources.FilterModel `tfsdk:"filter"`
+	Sites  []SiteModel               `tfsdk:"sites"`
 }
 
 type SiteModel struct {
@@ -29,68 +22,63 @@ type SiteModel struct {
 }
 
 func NewSitesDataSource() datasource.DataSource {
-	return &SitesDataSource{}
-}
-
-func (d *SitesDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_sites"
-}
-
-func (d *SitesDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		Description: "Data source for listing local UniFi Sites.",
-		Attributes: map[string]schema.Attribute{
-			"sites": schema.ListNestedAttribute{
-				Computed:    true,
-				Description: "List of sites.",
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"id": schema.StringAttribute{
-							Computed:    true,
-							Description: "Unique site UUID.",
+	return &datasources.GenericDataSource[SitesDataSourceModel]{
+		TypeName: "sites",
+		TFSchema: schema.Schema{
+			Description: "Data source for listing local UniFi Sites.",
+			Attributes: map[string]schema.Attribute{
+				"filter": schema.ListNestedAttribute{
+					Optional:    true,
+					Description: "Filters.",
+					NestedObject: schema.NestedAttributeObject{
+						Attributes: map[string]schema.Attribute{
+							"name": schema.StringAttribute{
+								Required: true,
+							},
+							"values": schema.ListAttribute{
+								ElementType: types.StringType,
+								Required:    true,
+							},
 						},
-						"name": schema.StringAttribute{
-							Computed:    true,
-							Description: "Name of the site.",
-						},
-						"internal_reference": schema.StringAttribute{
-							Computed:    true,
-							Description: "Internal reference handle.",
+					},
+				},
+				"sites": schema.ListNestedAttribute{
+					Computed:    true,
+					Description: "List of sites.",
+					NestedObject: schema.NestedAttributeObject{
+						Attributes: map[string]schema.Attribute{
+							"id": schema.StringAttribute{
+								Computed:    true,
+								Description: "Unique site UUID.",
+							},
+							"name": schema.StringAttribute{
+								Computed:    true,
+								Description: "Name of the site.",
+							},
+							"internal_reference": schema.StringAttribute{
+								Computed:    true,
+								Description: "Internal reference handle.",
+							},
 						},
 					},
 				},
 			},
 		},
-	}
-}
+		ReadFunc: func(ctx context.Context, c *client.Client, model *SitesDataSourceModel) error {
+			sites, err := c.Network.ListSites(ctx)
+			if err != nil {
+				return err
+			}
 
-func (d *SitesDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-	if req.ProviderData == nil {
-		return
+			model.Sites = make([]SiteModel, 0, len(sites))
+			for _, s := range sites {
+				model.Sites = append(model.Sites, SiteModel{
+					ID:                types.StringValue(s.ID),
+					Name:              types.StringValue(s.Name),
+					InternalReference: types.StringValue(s.InternalReference),
+				})
+			}
+			return nil
+		},
 	}
-	c, ok := req.ProviderData.(client.NetworkClient)
-	if !ok {
-		resp.Diagnostics.AddError("Unexpected Data Source Configure Type", "Expected client.NetworkClient")
-		return
-	}
-	d.client = c
-}
-
-func (d *SitesDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	sites, err := d.client.ListSites(ctx)
-	if err != nil {
-		resp.Diagnostics.AddError("Error Reading UniFi Sites", err.Error())
-		return
-	}
-
-	var state SitesDataSourceModel
-	for _, s := range sites {
-		state.Sites = append(state.Sites, SiteModel{
-			ID:                types.StringValue(s.ID),
-			Name:              types.StringValue(s.Name),
-			InternalReference: types.StringValue(s.InternalReference),
-		})
-	}
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }

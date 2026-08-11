@@ -4,6 +4,6 @@ provider "unifi" {
 	api_key = "test-key"
 }
 
-data "unifi_switch_stacks" "test" {
+data "unifi_network_switch_stacks" "test" {
 	site_id = "default"
 }

@@ -4,6 +4,6 @@ provider "unifi" {
 	api_key = "test-key"
 }
 
-data "unifi_countries" "test" {
+data "unifi_network_countries" "test" {
 	site_id = "default"
 }
