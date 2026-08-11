@@ -19,18 +19,43 @@ tasks:
 
   install:
     desc: Build and install the provider to the local plugins directory for OpenTofu or Terraform
-    deps: [build]
+    interactive: true
     cmds:
       - |
-        VERSION=$(git describe --tags --abbrev=0 2>/dev/null | sed 's/^v//')
-        if [ -z "$VERSION" ]; then
+        git fetch --tags
+        TAGS=$(git tag --sort=-v:refname)
+        if [ -z "$TAGS" ]; then
           echo "Error: No semantic version tag found."
           exit 1
         fi
+        MENU_OPTS=()
+        for t in $TAGS; do
+          MENU_OPTS+=("$t" "")
+        done
+        VERSION=$(whiptail --title "Select Version" --menu "Choose a version to install:" 15 50 8 "${MENU_OPTS[@]}" 3>&1 1>&2 2>&3) || true
+        if [ -z "$VERSION" ]; then
+          echo "Installation cancelled."
+          exit 0
+        fi
+        
+        CURRENT_BRANCH=$(git branch --show-current)
+        if [ -z "$CURRENT_BRANCH" ]; then
+          CURRENT_BRANCH=$(git rev-parse HEAD)
+        fi
+        
+        echo "Checking out $VERSION..."
+        git checkout "$VERSION"
+        
+        task build
+        
+        echo "Switching back to $CURRENT_BRANCH..."
+        git checkout "$CURRENT_BRANCH"
+        
+        VERSION_NO_V=$(echo "$VERSION" | sed 's/^v//')
         GOOS=$(go env GOOS)
         GOARCH=$(go env GOARCH)
         ARCH_DIR="${GOOS}_${GOARCH}"
-        BINARY_NAME="terraform-provider-{{.PROVIDER_NAME}}_v${VERSION}"
+        BINARY_NAME="terraform-provider-{{.PROVIDER_NAME}}_v${VERSION_NO_V}"
         
         if command -v tofu >/dev/null 2>&1; then
           echo "Detected OpenTofu"
@@ -45,7 +70,7 @@ tasks:
           exit 1
         fi
         
-        TARGET_DIR="$PLUGIN_BASE/$REGISTRY/{{.PROVIDER_NAMESPACE}}/{{.PROVIDER_NAME}}/${VERSION}/$ARCH_DIR"
+        TARGET_DIR="$PLUGIN_BASE/$REGISTRY/{{.PROVIDER_NAMESPACE}}/{{.PROVIDER_NAME}}/${VERSION_NO_V}/$ARCH_DIR"
         
         echo "Installing $BINARY_NAME to $TARGET_DIR..."
         mkdir -p "$TARGET_DIR"
