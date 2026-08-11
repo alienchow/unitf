@@ -43,3 +43,14 @@ func (c *Client) DeleteTrafficMatchingList(ctx context.Context, siteID, listID s
 	path := "/proxy/network/integration/v1/sites/" + siteID + "/traffic-matching-lists/" + listID
 	return c.DoRequest(ctx, "DELETE", path, nil, nil)
 }
+
+func (c *Client) ListTrafficMatchingLists(ctx context.Context, siteID string) ([]TrafficMatchingListDto, error) {
+	path := "/proxy/network/integration/v1/sites/" + siteID + "/traffic-matching-lists"
+	var resp struct {
+		Data []TrafficMatchingListDto `json:"data"`
+	}
+	if err := c.DoRequest(ctx, "GET", path, nil, &resp); err != nil {
+		return nil, err
+	}
+	return resp.Data, nil
+}

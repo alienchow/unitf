@@ -23,7 +23,7 @@ type CameraSmartDetect struct {
 }
 
 func (c *Client) GetCamera(ctx context.Context, cameraID string) (*CameraDto, error) {
-	path := "/proxy/protect/api/cameras/" + cameraID
+	path := "/proxy/protect/integration/v1/cameras/" + cameraID
 	var resp CameraDto
 	if err := c.DoRequest(ctx, "GET", path, nil, &resp); err != nil {
 		return nil, err
@@ -32,7 +32,7 @@ func (c *Client) GetCamera(ctx context.Context, cameraID string) (*CameraDto, er
 }
 
 func (c *Client) UpdateCamera(ctx context.Context, cameraID string, req *CameraDto) (*CameraDto, error) {
-	path := "/proxy/protect/api/cameras/" + cameraID
+	path := "/proxy/protect/integration/v1/cameras/" + cameraID
 	var resp CameraDto
 	if err := c.DoRequest(ctx, "PATCH", path, req, &resp); err != nil {
 		return nil, err

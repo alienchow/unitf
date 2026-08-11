@@ -47,3 +47,14 @@ func (c *Client) DeleteAclRule(ctx context.Context, siteID, ruleID string) error
 	path := "/proxy/network/integration/v1/sites/" + siteID + "/firewall/acl-rules/" + ruleID
 	return c.DoRequest(ctx, "DELETE", path, nil, nil)
 }
+
+func (c *Client) ListAclRules(ctx context.Context, siteID string) ([]AclRuleDto, error) {
+	path := "/proxy/network/integration/v1/sites/" + siteID + "/firewall/acl-rules"
+	var resp struct {
+		Data []AclRuleDto `json:"data"`
+	}
+	if err := c.DoRequest(ctx, "GET", path, nil, &resp); err != nil {
+		return nil, err
+	}
+	return resp.Data, nil
+}

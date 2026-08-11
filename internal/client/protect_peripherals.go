@@ -44,7 +44,7 @@ type LiveviewDto struct {
 }
 
 func (c *Client) GetLight(ctx context.Context, id string) (*LightDto, error) {
-	path := "/proxy/protect/api/lights/" + id
+	path := "/proxy/protect/integration/v1/lights/" + id
 	var resp LightDto
 	if err := c.DoRequest(ctx, "GET", path, nil, &resp); err != nil {
 		return nil, err
@@ -53,7 +53,7 @@ func (c *Client) GetLight(ctx context.Context, id string) (*LightDto, error) {
 }
 
 func (c *Client) UpdateLight(ctx context.Context, id string, req *LightDto) (*LightDto, error) {
-	path := "/proxy/protect/api/lights/" + id
+	path := "/proxy/protect/integration/v1/lights/" + id
 	var resp LightDto
 	if err := c.DoRequest(ctx, "PATCH", path, req, &resp); err != nil {
 		return nil, err
@@ -62,8 +62,7 @@ func (c *Client) UpdateLight(ctx context.Context, id string, req *LightDto) (*Li
 }
 
 func (c *Client) GetRelay(ctx context.Context, id string) (*RelayDto, error) {
-	path := "/proxy/protect/api/viewer/" + id // Relays might be elsewhere, but assume same for now, or just /relays. I will use /relays.
-	path = "/proxy/protect/api/relays/" + id
+	path := "/proxy/protect/integration/v1/relays/" + id
 	var resp RelayDto
 	if err := c.DoRequest(ctx, "GET", path, nil, &resp); err != nil {
 		return nil, err
@@ -72,7 +71,7 @@ func (c *Client) GetRelay(ctx context.Context, id string) (*RelayDto, error) {
 }
 
 func (c *Client) UpdateRelay(ctx context.Context, id string, req *RelayDto) (*RelayDto, error) {
-	path := "/proxy/protect/api/relays/" + id
+	path := "/proxy/protect/integration/v1/relays/" + id
 	var resp RelayDto
 	if err := c.DoRequest(ctx, "PATCH", path, req, &resp); err != nil {
 		return nil, err
@@ -81,7 +80,7 @@ func (c *Client) UpdateRelay(ctx context.Context, id string, req *RelayDto) (*Re
 }
 
 func (c *Client) GetSiren(ctx context.Context, id string) (*SirenDto, error) {
-	path := "/proxy/protect/api/sirens/" + id
+	path := "/proxy/protect/integration/v1/sirens/" + id
 	var resp SirenDto
 	if err := c.DoRequest(ctx, "GET", path, nil, &resp); err != nil {
 		return nil, err
@@ -90,7 +89,7 @@ func (c *Client) GetSiren(ctx context.Context, id string) (*SirenDto, error) {
 }
 
 func (c *Client) UpdateSiren(ctx context.Context, id string, req *SirenDto) (*SirenDto, error) {
-	path := "/proxy/protect/api/sirens/" + id
+	path := "/proxy/protect/integration/v1/sirens/" + id
 	var resp SirenDto
 	if err := c.DoRequest(ctx, "PATCH", path, req, &resp); err != nil {
 		return nil, err
@@ -99,7 +98,7 @@ func (c *Client) UpdateSiren(ctx context.Context, id string, req *SirenDto) (*Si
 }
 
 func (c *Client) GetChime(ctx context.Context, id string) (*ChimeDto, error) {
-	path := "/proxy/protect/api/chimes/" + id
+	path := "/proxy/protect/integration/v1/chimes/" + id
 	var resp ChimeDto
 	if err := c.DoRequest(ctx, "GET", path, nil, &resp); err != nil {
 		return nil, err
@@ -108,7 +107,7 @@ func (c *Client) GetChime(ctx context.Context, id string) (*ChimeDto, error) {
 }
 
 func (c *Client) UpdateChime(ctx context.Context, id string, req *ChimeDto) (*ChimeDto, error) {
-	path := "/proxy/protect/api/chimes/" + id
+	path := "/proxy/protect/integration/v1/chimes/" + id
 	var resp ChimeDto
 	if err := c.DoRequest(ctx, "PATCH", path, req, &resp); err != nil {
 		return nil, err
@@ -117,7 +116,7 @@ func (c *Client) UpdateChime(ctx context.Context, id string, req *ChimeDto) (*Ch
 }
 
 func (c *Client) GetViewer(ctx context.Context, id string) (*ViewerDto, error) {
-	path := "/proxy/protect/api/viewers/" + id
+	path := "/proxy/protect/integration/v1/viewers/" + id
 	var resp ViewerDto
 	if err := c.DoRequest(ctx, "GET", path, nil, &resp); err != nil {
 		return nil, err
@@ -126,7 +125,7 @@ func (c *Client) GetViewer(ctx context.Context, id string) (*ViewerDto, error) {
 }
 
 func (c *Client) UpdateViewer(ctx context.Context, id string, req *ViewerDto) (*ViewerDto, error) {
-	path := "/proxy/protect/api/viewers/" + id
+	path := "/proxy/protect/integration/v1/viewers/" + id
 	var resp ViewerDto
 	if err := c.DoRequest(ctx, "PATCH", path, req, &resp); err != nil {
 		return nil, err
@@ -135,7 +134,7 @@ func (c *Client) UpdateViewer(ctx context.Context, id string, req *ViewerDto) (*
 }
 
 func (c *Client) CreateLiveview(ctx context.Context, req *LiveviewDto) (*LiveviewDto, error) {
-	path := "/proxy/protect/api/liveviews"
+	path := "/proxy/protect/integration/v1/liveviews"
 	var resp LiveviewDto
 	if err := c.DoRequest(ctx, "POST", path, req, &resp); err != nil {
 		return nil, err
@@ -144,7 +143,7 @@ func (c *Client) CreateLiveview(ctx context.Context, req *LiveviewDto) (*Livevie
 }
 
 func (c *Client) GetLiveview(ctx context.Context, id string) (*LiveviewDto, error) {
-	path := "/proxy/protect/api/liveviews/" + id
+	path := "/proxy/protect/integration/v1/liveviews/" + id
 	var resp LiveviewDto
 	if err := c.DoRequest(ctx, "GET", path, nil, &resp); err != nil {
 		return nil, err
@@ -153,7 +152,7 @@ func (c *Client) GetLiveview(ctx context.Context, id string) (*LiveviewDto, erro
 }
 
 func (c *Client) UpdateLiveview(ctx context.Context, id string, req *LiveviewDto) (*LiveviewDto, error) {
-	path := "/proxy/protect/api/liveviews/" + id
+	path := "/proxy/protect/integration/v1/liveviews/" + id
 	var resp LiveviewDto
 	if err := c.DoRequest(ctx, "PATCH", path, req, &resp); err != nil {
 		return nil, err
@@ -162,6 +161,6 @@ func (c *Client) UpdateLiveview(ctx context.Context, id string, req *LiveviewDto
 }
 
 func (c *Client) DeleteLiveview(ctx context.Context, id string) error {
-	path := "/proxy/protect/api/liveviews/" + id
+	path := "/proxy/protect/integration/v1/liveviews/" + id
 	return c.DoRequest(ctx, "DELETE", path, nil, nil)
 }

@@ -82,10 +82,10 @@ resource "unifi_network" "corporate" {
 }
 
 # 3. Lookup a connected UniFi Protect Camera by Name
-data "unifi_protect_cameras" "all" {}
+data "unifi_cameras" "all" {}
 
 locals {
-  front_cam = [for c in data.unifi_protect_cameras.all.cameras : c if c.name == "Front Door"][0]
+  front_cam = [for c in data.unifi_cameras.all.items : c if c.name == "Front Door"][0]
 }
 
 # 4. Enforce Protect Recording and Smart Detection Behaviors
@@ -104,6 +104,36 @@ resource "unifi_protect_camera" "front_door" {
   smart_detect_settings = {
     object_types = ["person", "vehicle", "package"]
   }
+}
+```
+
+## Importing Existing Resources
+
+OpenTofu allows you to generate configuration code natively for resources you already have running on your console using `tofu plan -generate-config-out=baseline.tf`.
+
+### UniFi Protect
+You can dynamically discover and generate code for all your Protect devices (Cameras, Chimes, Lights, etc.) by generating explicit `import` blocks. Create a `local_file` resource to unroll your devices into static imports:
+
+```hcl
+data "unifi_cameras" "all" {}
+
+resource "local_file" "explicit_imports" {
+  filename = "explicit_imports.tf"
+  content  = join("\n", [
+    for cam in data.unifi_cameras.all.items :
+    "import {\n  id = \"${cam.id}\"\n  to = unifi_protect_camera.cam_${replace(cam.id, \"-\", \"_\")}\n}"
+  ])
+}
+```
+Run `tofu apply -target=local_file.explicit_imports` to create the file, then `tofu plan -generate-config-out=baseline.tf` to generate your infrastructure code!
+
+### UniFi Network
+Due to limitations in the UniFi proxy API, Network resources (like VLANs and Firewall Policies) **do not have list endpoints**. This means you cannot automatically discover them via `data` sources. To import existing networks, you must manually grab the UUID from your UniFi dashboard URL and write explicit import blocks:
+
+```hcl
+import {
+  id = "your-network-uuid-here"
+  to = unifi_network.my_network
 }
 ```
 

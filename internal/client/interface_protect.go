@@ -32,7 +32,7 @@ type ProtectClient interface {
 	UpdateLiveview(ctx context.Context, id string, req *LiveviewDto) (*LiveviewDto, error)
 	DeleteLiveview(ctx context.Context, id string) error
 
-	ListCameras(ctx context.Context) ([]struct{ ID string }, error)
+	ListCameras(ctx context.Context) ([]CameraDto, error)
 	ListNvr(ctx context.Context) ([]struct{ ID string }, error)
 	ListSensors(ctx context.Context) ([]struct{ ID string }, error)
 	ListLights(ctx context.Context) ([]struct{ ID string }, error)

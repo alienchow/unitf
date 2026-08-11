@@ -67,9 +67,9 @@ func (r *TrafficMatchingListResource) Schema(ctx context.Context, req resource.S
 			},
 			"type": schema.StringAttribute{
 				Required:    true,
-				Description: "List type: IPV4, IPV6, PORT.",
+				Description: "List type: IPV4, IPV6, PORT, IPV4_ADDRESSES, IPV6_ADDRESSES, PORTS.",
 				Validators: []validator.String{
-					stringvalidator.OneOf("IPV4", "IPV6", "PORT"),
+					stringvalidator.OneOf("IPV4", "IPV6", "PORT", "IPV4_ADDRESSES", "IPV6_ADDRESSES", "PORTS"),
 				},
 			},
 			"addresses": schema.ListAttribute{
@@ -135,6 +135,10 @@ func (r *TrafficMatchingListResource) Read(ctx context.Context, req resource.Rea
 
 	res, err := r.client.GetTrafficMatchingList(ctx, state.SiteID.ValueString(), state.ID.ValueString())
 	if err != nil {
+		if client.IsNotFound(err) {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		resp.Diagnostics.AddError("Error Reading UniFi Traffic Matching List", err.Error())
 		return
 	}
@@ -191,7 +195,7 @@ func (r *TrafficMatchingListResource) Delete(ctx context.Context, req resource.D
 	}
 
 	err := r.client.DeleteTrafficMatchingList(ctx, state.SiteID.ValueString(), state.ID.ValueString())
-	if err != nil {
+	if err != nil && !client.IsNotFound(err) {
 		resp.Diagnostics.AddError("Error Deleting UniFi Traffic Matching List", err.Error())
 		return
 	}

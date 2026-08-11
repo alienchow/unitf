@@ -242,6 +242,10 @@ func (r *AclRuleResource) Read(ctx context.Context, req resource.ReadRequest, re
 
 	res, err := r.client.GetAclRule(ctx, state.SiteID.ValueString(), state.ID.ValueString())
 	if err != nil {
+		if client.IsNotFound(err) {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		resp.Diagnostics.AddError("Error Reading UniFi ACL Rule", err.Error())
 		return
 	}
@@ -303,7 +307,7 @@ func (r *AclRuleResource) Delete(ctx context.Context, req resource.DeleteRequest
 	}
 
 	err := r.client.DeleteAclRule(ctx, state.SiteID.ValueString(), state.ID.ValueString())
-	if err != nil {
+	if err != nil && !client.IsNotFound(err) {
 		resp.Diagnostics.AddError("Error Deleting UniFi ACL Rule", err.Error())
 		return
 	}

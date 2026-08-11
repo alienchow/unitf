@@ -140,6 +140,10 @@ func (r *DnsPolicyResource) Read(ctx context.Context, req resource.ReadRequest, 
 
 	res, err := r.client.GetDnsPolicy(ctx, state.SiteID.ValueString(), state.ID.ValueString())
 	if err != nil {
+		if client.IsNotFound(err) {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		resp.Diagnostics.AddError("Error Reading UniFi DNS Policy", err.Error())
 		return
 	}
@@ -192,7 +196,7 @@ func (r *DnsPolicyResource) Delete(ctx context.Context, req resource.DeleteReque
 	}
 
 	err := r.client.DeleteDnsPolicy(ctx, state.SiteID.ValueString(), state.ID.ValueString())
-	if err != nil {
+	if err != nil && !client.IsNotFound(err) {
 		resp.Diagnostics.AddError("Error Deleting UniFi DNS Policy", err.Error())
 		return
 	}

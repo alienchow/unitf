@@ -103,6 +103,10 @@ func (r *ProtectChimeResource) Read(ctx context.Context, req resource.ReadReques
 
 	res, err := r.client.GetChime(ctx, state.ID.ValueString())
 	if err != nil {
+		if client.IsNotFound(err) {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		resp.Diagnostics.AddError("Error Reading UniFi Protect Chime", err.Error())
 		return
 	}

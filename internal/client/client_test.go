@@ -14,8 +14,8 @@ func TestClient_DoRequest_Success(t *testing.T) {
 	// Create a mock HTTP server
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Validate headers
-		if r.Header.Get("X-API-KEY") != "test-api-key" {
-			t.Errorf("Expected X-API-KEY test-api-key, got %s", r.Header.Get("X-API-KEY"))
+		if r.Header.Get("X-API-Key") != "test-api-key" {
+			t.Errorf("Expected X-API-Key test-api-key, got %s", r.Header.Get("X-API-Key"))
 		}
 
 		// Return a mock response

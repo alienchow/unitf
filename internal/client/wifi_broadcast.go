@@ -46,3 +46,14 @@ func (c *Client) DeleteWifiBroadcast(ctx context.Context, siteID, wlanID string)
 	path := "/proxy/network/integration/v1/sites/" + siteID + "/wifi-broadcasts/" + wlanID
 	return c.DoRequest(ctx, "DELETE", path, nil, nil)
 }
+
+func (c *Client) ListWifiBroadcasts(ctx context.Context, siteID string) ([]WifiBroadcastDto, error) {
+	path := "/proxy/network/integration/v1/sites/" + siteID + "/wifi-broadcasts"
+	var resp struct {
+		Data []WifiBroadcastDto `json:"data"`
+	}
+	if err := c.DoRequest(ctx, "GET", path, nil, &resp); err != nil {
+		return nil, err
+	}
+	return resp.Data, nil
+}

@@ -1,0 +1,43 @@
+version: '3'
+
+vars:
+  PROVIDER_NAME: unitf
+  PROVIDER_NAMESPACE: alienchow
+  VERSION: 0.1.0
+
+tasks:
+  build:
+    desc: Build the provider binary
+    cmds:
+      - go build -o terraform-provider-{{.PROVIDER_NAME}}_v{{.VERSION}}
+
+  install:
+    desc: Build and install the provider to the local plugins directory for OpenTofu or Terraform
+    deps: [build]
+    cmds:
+      - |
+        GOOS=$(go env GOOS)
+        GOARCH=$(go env GOARCH)
+        ARCH_DIR="${GOOS}_${GOARCH}"
+        BINARY_NAME="terraform-provider-{{.PROVIDER_NAME}}_v{{.VERSION}}"
+        
+        if command -v tofu >/dev/null 2>&1; then
+          echo "Detected OpenTofu"
+          REGISTRY="registry.opentofu.org"
+          PLUGIN_BASE="$HOME/.opentofu/plugins"
+        elif command -v terraform >/dev/null 2>&1; then
+          echo "Detected Terraform"
+          REGISTRY="registry.terraform.io"
+          PLUGIN_BASE="$HOME/.terraform.d/plugins"
+        else
+          echo "Error: Neither tofu nor terraform found in PATH."
+          exit 1
+        fi
+        
+        TARGET_DIR="$PLUGIN_BASE/$REGISTRY/{{.PROVIDER_NAMESPACE}}/{{.PROVIDER_NAME}}/{{.VERSION}}/$ARCH_DIR"
+        
+        echo "Installing $BINARY_NAME to $TARGET_DIR..."
+        mkdir -p "$TARGET_DIR"
+        mv $BINARY_NAME "$TARGET_DIR/$BINARY_NAME"
+        
+        echo "Installation complete!"

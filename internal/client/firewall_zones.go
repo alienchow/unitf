@@ -41,3 +41,14 @@ func (c *Client) DeleteFirewallZone(ctx context.Context, siteID, zoneID string) 
 	path := "/proxy/network/integration/v1/sites/" + siteID + "/firewall/zones/" + zoneID
 	return c.DoRequest(ctx, "DELETE", path, nil, nil)
 }
+
+func (c *Client) ListFirewallZones(ctx context.Context, siteID string) ([]FirewallZoneDto, error) {
+	path := "/proxy/network/integration/v1/sites/" + siteID + "/firewall/zones"
+	var resp struct {
+		Data []FirewallZoneDto `json:"data"`
+	}
+	if err := c.DoRequest(ctx, "GET", path, nil, &resp); err != nil {
+		return nil, err
+	}
+	return resp.Data, nil
+}

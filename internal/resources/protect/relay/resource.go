@@ -95,6 +95,10 @@ func (r *ProtectRelayResource) Read(ctx context.Context, req resource.ReadReques
 
 	res, err := r.client.GetRelay(ctx, state.ID.ValueString())
 	if err != nil {
+		if client.IsNotFound(err) {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		resp.Diagnostics.AddError("Error Reading UniFi Protect Relay", err.Error())
 		return
 	}

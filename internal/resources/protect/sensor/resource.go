@@ -111,6 +111,10 @@ func (r *ProtectSensorResource) Read(ctx context.Context, req resource.ReadReque
 
 	res, err := r.client.GetSensor(ctx, state.ID.ValueString())
 	if err != nil {
+		if client.IsNotFound(err) {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		resp.Diagnostics.AddError("Error Reading UniFi Protect Sensor", err.Error())
 		return
 	}

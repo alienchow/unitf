@@ -96,6 +96,10 @@ func (r *ProtectLiveviewResource) Read(ctx context.Context, req resource.ReadReq
 
 	res, err := r.client.GetLiveview(ctx, state.ID.ValueString())
 	if err != nil {
+		if client.IsNotFound(err) {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		resp.Diagnostics.AddError("Error Reading UniFi Protect Liveview", err.Error())
 		return
 	}
@@ -133,7 +137,7 @@ func (r *ProtectLiveviewResource) Delete(ctx context.Context, req resource.Delet
 	}
 
 	err := r.client.DeleteLiveview(ctx, state.ID.ValueString())
-	if err != nil {
+	if err != nil && !client.IsNotFound(err) {
 		resp.Diagnostics.AddError("Error Deleting UniFi Protect Liveview", err.Error())
 		return
 	}

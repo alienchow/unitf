@@ -53,36 +53,43 @@ func (r *ProtectCameraResource) Schema(ctx context.Context, req resource.SchemaR
 		Description: "Manages a UniFi Protect Camera.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Required:    true,
+				Computed:    true,
 				Description: "Camera UUID (Cameras are adopted, we just configure them).",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
+					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"name": schema.StringAttribute{
 				Optional:    true,
+				Computed:    true,
 				Description: "Name of the camera.",
 			},
 			"video_mode": schema.StringAttribute{
 				Optional:    true,
+				Computed:    true,
 				Description: "Video mode (e.g. default, highFps).",
 			},
 			"record_everything": schema.BoolAttribute{
 				Optional: true,
+				Computed: true,
 			},
 			"osd_settings": schema.SingleNestedAttribute{
 				Optional: true,
+				Computed: true,
 				Attributes: map[string]schema.Attribute{
-					"is_name_enabled": schema.BoolAttribute{Optional: true},
-					"is_date_enabled": schema.BoolAttribute{Optional: true},
+					"is_name_enabled": schema.BoolAttribute{Optional: true, Computed: true},
+					"is_date_enabled": schema.BoolAttribute{Optional: true, Computed: true},
 				},
 			},
 			"smart_detect_settings": schema.SingleNestedAttribute{
 				Optional: true,
+				Computed: true,
 				Attributes: map[string]schema.Attribute{
 					"object_types": schema.ListAttribute{
 						ElementType: types.StringType,
 						Optional:    true,
+						Computed:    true,
 					},
 				},
 			},
@@ -132,6 +139,10 @@ func (r *ProtectCameraResource) Read(ctx context.Context, req resource.ReadReque
 
 	res, err := r.client.GetCamera(ctx, state.ID.ValueString())
 	if err != nil {
+		if client.IsNotFound(err) {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		resp.Diagnostics.AddError("Error Reading UniFi Protect Camera", err.Error())
 		return
 	}

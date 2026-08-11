@@ -93,3 +93,14 @@ func (c *Client) DeleteNetwork(ctx context.Context, siteID, networkID string) er
 	path := "/proxy/network/integration/v1/sites/" + siteID + "/networks/" + networkID
 	return c.DoRequest(ctx, "DELETE", path, nil, nil)
 }
+
+func (c *Client) ListNetworks(ctx context.Context, siteID string) ([]NetworkDto, error) {
+	path := "/proxy/network/integration/v1/sites/" + siteID + "/networks"
+	var resp struct {
+		Data []NetworkDto `json:"data"`
+	}
+	if err := c.DoRequest(ctx, "GET", path, nil, &resp); err != nil {
+		return nil, err
+	}
+	return resp.Data, nil
+}

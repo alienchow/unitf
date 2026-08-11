@@ -16,6 +16,13 @@ import (
 	mc_lag_domains_ds "github.com/alienchow/unitf/internal/datasources/network/mc_lag_domains"
 	radius_profiles_ds "github.com/alienchow/unitf/internal/datasources/network/radius_profiles"
 	sites_ds "github.com/alienchow/unitf/internal/datasources/network/sites"
+	traffic_matching_lists_ds "github.com/alienchow/unitf/internal/datasources/network/traffic_matching_lists"
+	dns_policies_ds "github.com/alienchow/unitf/internal/datasources/network/dns_policies"
+	acl_rules_ds "github.com/alienchow/unitf/internal/datasources/network/acl_rules"
+	wifi_broadcasts_ds "github.com/alienchow/unitf/internal/datasources/network/wifi_broadcasts"
+	firewall_policies_ds "github.com/alienchow/unitf/internal/datasources/network/firewall_policies"
+	firewall_zones_ds "github.com/alienchow/unitf/internal/datasources/network/firewall_zones"
+	networks_ds "github.com/alienchow/unitf/internal/datasources/network/networks"
 	switch_stacks_ds "github.com/alienchow/unitf/internal/datasources/network/switch_stacks"
 	vpn_servers_ds "github.com/alienchow/unitf/internal/datasources/network/vpn_servers"
 	vpn_tunnels_ds "github.com/alienchow/unitf/internal/datasources/network/vpn_tunnels"
@@ -179,6 +186,13 @@ func (p *UniFiProvider) Resources(ctx context.Context) []func() resource.Resourc
 func (p *UniFiProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
 		sites_ds.NewSitesDataSource,
+		traffic_matching_lists_ds.NewTrafficMatchingListsDataSource,
+		dns_policies_ds.NewDnsPoliciesDataSource,
+		acl_rules_ds.NewAclRulesDataSource,
+		wifi_broadcasts_ds.NewWifiBroadcastsDataSource,
+		firewall_policies_ds.NewFirewallPoliciesDataSource,
+		firewall_zones_ds.NewFirewallZonesDataSource,
+		networks_ds.NewNetworksDataSource,
 		wans_ds.NewWansDataSource,
 		devices_ds.NewDevicesDataSource,
 		device_statistics_ds.NewDeviceStatisticsDataSource,

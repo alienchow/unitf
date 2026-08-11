@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"net/url"
 	"strings"
 	"time"
 )
@@ -74,35 +73,53 @@ func NewClient(host, apiKey string, insecure bool) (*Client, error) {
 func (c *Client) DoRequest(ctx context.Context, method, path string, body interface{}, out interface{}) error {
 	fullURL := c.Host + path
 
-	var reqBody io.Reader
+	var reqBodyBytes []byte
 	if body != nil {
 		buf, err := json.Marshal(body)
 		if err != nil {
 			return fmt.Errorf("failed to marshal request body: %w", err)
 		}
-		reqBody = bytes.NewBuffer(buf)
+		reqBodyBytes = buf
 	}
 
-	req, err := http.NewRequestWithContext(ctx, method, fullURL, reqBody)
-	if err != nil {
-		return fmt.Errorf("failed to create request: %w", err)
-	}
+	var resp *http.Response
+	var respBuf []byte
+	delays := []time.Duration{1 * time.Second, 2 * time.Second, 4 * time.Second}
 
-	req.Header.Set("X-API-Key", c.APIKey)
-	req.Header.Set("Accept", "application/json")
-	if body != nil {
-		req.Header.Set("Content-Type", "application/json")
-	}
+	for attempt := 0; attempt <= 3; attempt++ {
+		var reqBody io.Reader
+		if reqBodyBytes != nil {
+			reqBody = bytes.NewBuffer(reqBodyBytes)
+		}
 
-	resp, err := c.HTTPClient.Do(req)
-	if err != nil {
-		return fmt.Errorf("HTTP request failed: %w", err)
-	}
-	defer resp.Body.Close()
+		req, err := http.NewRequestWithContext(ctx, method, fullURL, reqBody)
+		if err != nil {
+			return fmt.Errorf("failed to create request: %w", err)
+		}
 
-	respBuf, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return fmt.Errorf("failed to read response body: %w", err)
+		req.Header.Set("X-API-Key", c.APIKey)
+		req.Header.Set("Accept", "application/json")
+		if body != nil {
+			req.Header.Set("Content-Type", "application/json")
+		}
+
+		resp, err = c.HTTPClient.Do(req)
+		if err != nil {
+			return fmt.Errorf("HTTP request failed: %w", err)
+		}
+
+		respBuf, err = io.ReadAll(resp.Body)
+		resp.Body.Close()
+		if err != nil {
+			return fmt.Errorf("failed to read response body: %w", err)
+		}
+
+		if resp.StatusCode == http.StatusTooManyRequests && attempt < 3 {
+			time.Sleep(delays[attempt])
+			continue
+		}
+		
+		break
 	}
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
@@ -131,20 +148,3 @@ func (c *Client) DoRequest(ctx context.Context, method, path string, body interf
 	return nil
 }
 
-// Helper to format query parameters
-func FormatQueryParams(offset, limit int, filter string) string {
-	v := url.Values{}
-	if offset > 0 {
-		v.Set("offset", fmt.Sprintf("%d", offset))
-	}
-	if limit > 0 {
-		v.Set("limit", fmt.Sprintf("%d", limit))
-	}
-	if filter != "" {
-		v.Set("filter", filter)
-	}
-	if len(v) == 0 {
-		return ""
-	}
-	return "?" + v.Encode()
-}

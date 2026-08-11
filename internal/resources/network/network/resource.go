@@ -207,41 +207,7 @@ func (r *NetworkResource) Create(ctx context.Context, req resource.CreateRequest
 		return
 	}
 
-	dto := &client.NetworkDto{
-		Name: plan.Name.ValueString(),
-		Type: plan.Type.ValueString(),
-	}
-
-	if plan.Type.ValueString() == "GATEWAY_MANAGED" && plan.GatewayManaged != nil {
-		if !plan.GatewayManaged.VlanID.IsNull() {
-			vlan := int(plan.GatewayManaged.VlanID.ValueInt64())
-			dto.VlanID = &vlan
-		}
-		if !plan.GatewayManaged.Purpose.IsNull() {
-			dto.Purpose = plan.GatewayManaged.Purpose.ValueString()
-		}
-		if !plan.GatewayManaged.MulticastDNS.IsNull() {
-			mdns := plan.GatewayManaged.MulticastDNS.ValueBool()
-			dto.MulticastDNS = &mdns
-		}
-		if plan.GatewayManaged.IPv4 != nil {
-			dto.IPv4 = &client.GatewayIPv4Config{
-				Enabled:    plan.GatewayManaged.IPv4.Enabled.ValueBool(),
-				SubnetMask: plan.GatewayManaged.IPv4.SubnetMask.ValueString(),
-			}
-			if plan.GatewayManaged.IPv4.DHCPServer != nil {
-				dto.IPv4.DHCP = &client.IPv4DHCPDto{
-					Mode:       "DHCP_SERVER",
-					RangeStart: plan.GatewayManaged.IPv4.DHCPServer.RangeStart.ValueString(),
-					RangeStop:  plan.GatewayManaged.IPv4.DHCPServer.RangeStop.ValueString(),
-				}
-				if !plan.GatewayManaged.IPv4.DHCPServer.LeaseTimeSec.IsNull() {
-					lease := plan.GatewayManaged.IPv4.DHCPServer.LeaseTimeSec.ValueInt64()
-					dto.IPv4.DHCP.LeaseTimeSec = &lease
-				}
-			}
-		}
-	}
+	dto := buildNetworkDto(plan)
 
 	res, err := r.client.CreateNetwork(ctx, plan.SiteID.ValueString(), dto)
 	if err != nil {
@@ -270,8 +236,7 @@ func (r *NetworkResource) Read(ctx context.Context, req resource.ReadRequest, re
 		return
 	}
 
-	state.Name = types.StringValue(res.Name)
-	state.Type = types.StringValue(res.Type)
+	populateStateFromDto(&state, res)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
@@ -283,10 +248,7 @@ func (r *NetworkResource) Update(ctx context.Context, req resource.UpdateRequest
 		return
 	}
 
-	dto := &client.NetworkDto{
-		Name: plan.Name.ValueString(),
-		Type: plan.Type.ValueString(),
-	}
+	dto := buildNetworkDto(plan)
 
 	res, err := r.client.UpdateNetwork(ctx, plan.SiteID.ValueString(), plan.ID.ValueString(), dto)
 	if err != nil {
@@ -320,4 +282,188 @@ func (r *NetworkResource) ImportState(ctx context.Context, req resource.ImportSt
 	}
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("site_id"), parts[0])...)
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), parts[1])...)
+}
+
+func buildNetworkDto(plan NetworkResourceModel) *client.NetworkDto {
+	dto := &client.NetworkDto{
+		Name: plan.Name.ValueString(),
+		Type: plan.Type.ValueString(),
+	}
+
+	switch plan.Type.ValueString() {
+	case "GATEWAY_MANAGED":
+		if plan.GatewayManaged != nil {
+			if !plan.GatewayManaged.VlanID.IsNull() {
+				vlan := int(plan.GatewayManaged.VlanID.ValueInt64())
+				dto.VlanID = &vlan
+			}
+			if !plan.GatewayManaged.Purpose.IsNull() {
+				dto.Purpose = plan.GatewayManaged.Purpose.ValueString()
+			}
+			if !plan.GatewayManaged.MulticastDNS.IsNull() {
+				mdns := plan.GatewayManaged.MulticastDNS.ValueBool()
+				dto.MulticastDNS = &mdns
+			}
+			if plan.GatewayManaged.DHCPGuarding != nil {
+				dto.DHCPGuarding = &client.NetworkDHCPGuarding{
+					Enabled: plan.GatewayManaged.DHCPGuarding.Enabled.ValueBool(),
+				}
+				for _, ip := range plan.GatewayManaged.DHCPGuarding.ServerIPs {
+					if !ip.IsNull() {
+						dto.DHCPGuarding.ServerIPs = append(dto.DHCPGuarding.ServerIPs, ip.ValueString())
+					}
+				}
+			}
+			if plan.GatewayManaged.IPv4 != nil {
+				dto.IPv4 = &client.GatewayIPv4Config{
+					Enabled:    plan.GatewayManaged.IPv4.Enabled.ValueBool(),
+					SubnetMask: plan.GatewayManaged.IPv4.SubnetMask.ValueString(),
+				}
+				if plan.GatewayManaged.IPv4.DHCPServer != nil {
+					dto.IPv4.DHCP = &client.IPv4DHCPDto{
+						Mode:       "DHCP_SERVER",
+						RangeStart: plan.GatewayManaged.IPv4.DHCPServer.RangeStart.ValueString(),
+						RangeStop:  plan.GatewayManaged.IPv4.DHCPServer.RangeStop.ValueString(),
+					}
+					if !plan.GatewayManaged.IPv4.DHCPServer.LeaseTimeSec.IsNull() {
+						lease := plan.GatewayManaged.IPv4.DHCPServer.LeaseTimeSec.ValueInt64()
+						dto.IPv4.DHCP.LeaseTimeSec = &lease
+					}
+					if !plan.GatewayManaged.IPv4.DHCPServer.GatewayAddress.IsNull() {
+						dto.IPv4.DHCP.GatewayAddress = plan.GatewayManaged.IPv4.DHCPServer.GatewayAddress.ValueString()
+					}
+					for _, ip := range plan.GatewayManaged.IPv4.DHCPServer.DNSServers {
+						if !ip.IsNull() {
+							dto.IPv4.DHCP.DNSServers = append(dto.IPv4.DHCP.DNSServers, ip.ValueString())
+						}
+					}
+				}
+			}
+		}
+	case "SWITCH_MANAGED":
+		if plan.SwitchManaged != nil {
+			if !plan.SwitchManaged.VlanID.IsNull() {
+				vlan := int(plan.SwitchManaged.VlanID.ValueInt64())
+				dto.VlanID = &vlan
+			}
+			if plan.SwitchManaged.DHCPGuarding != nil {
+				dto.DHCPGuarding = &client.NetworkDHCPGuarding{
+					Enabled: plan.SwitchManaged.DHCPGuarding.Enabled.ValueBool(),
+				}
+				for _, ip := range plan.SwitchManaged.DHCPGuarding.ServerIPs {
+					if !ip.IsNull() {
+						dto.DHCPGuarding.ServerIPs = append(dto.DHCPGuarding.ServerIPs, ip.ValueString())
+					}
+				}
+			}
+		}
+	case "UNMANAGED":
+		if plan.Unmanaged != nil {
+			if !plan.Unmanaged.VlanID.IsNull() {
+				vlan := int(plan.Unmanaged.VlanID.ValueInt64())
+				dto.VlanID = &vlan
+			}
+		}
+	}
+
+	return dto
+}
+
+func populateStateFromDto(state *NetworkResourceModel, res *client.NetworkDto) {
+	state.Name = types.StringValue(res.Name)
+	if res.Type == "" {
+		state.Type = types.StringNull()
+	} else {
+		state.Type = types.StringValue(res.Type)
+	}
+
+	state.GatewayManaged = nil
+	state.SwitchManaged = nil
+	state.Unmanaged = nil
+
+	switch res.Type {
+	case "GATEWAY_MANAGED":
+		gm := &GatewayManagedNetworkModel{
+			VlanID:       types.Int64Null(),
+			Purpose:      types.StringNull(),
+			MulticastDNS: types.BoolNull(),
+		}
+		if res.VlanID != nil {
+			gm.VlanID = types.Int64Value(int64(*res.VlanID))
+		}
+		if res.Purpose != "" {
+			gm.Purpose = types.StringValue(res.Purpose)
+		}
+		if res.MulticastDNS != nil {
+			gm.MulticastDNS = types.BoolValue(*res.MulticastDNS)
+		}
+		if res.DHCPGuarding != nil {
+			dg := &DHCPGuardingModel{
+				Enabled: types.BoolValue(res.DHCPGuarding.Enabled),
+			}
+			for _, ip := range res.DHCPGuarding.ServerIPs {
+				dg.ServerIPs = append(dg.ServerIPs, types.StringValue(ip))
+			}
+			gm.DHCPGuarding = dg
+		}
+		if res.IPv4 != nil {
+			ipv4 := &GatewayIPv4Model{
+				Enabled:    types.BoolValue(res.IPv4.Enabled),
+				SubnetMask: types.StringValue(res.IPv4.SubnetMask),
+			}
+			if res.IPv4.DHCP != nil && res.IPv4.DHCP.Mode == "DHCP_SERVER" {
+				dhcp := &DHCPServerModel{
+					RangeStart:     types.StringNull(),
+					RangeStop:      types.StringNull(),
+					LeaseTimeSec:   types.Int64Null(),
+					GatewayAddress: types.StringNull(),
+				}
+				if res.IPv4.DHCP.RangeStart != "" {
+					dhcp.RangeStart = types.StringValue(res.IPv4.DHCP.RangeStart)
+				}
+				if res.IPv4.DHCP.RangeStop != "" {
+					dhcp.RangeStop = types.StringValue(res.IPv4.DHCP.RangeStop)
+				}
+				if res.IPv4.DHCP.LeaseTimeSec != nil {
+					dhcp.LeaseTimeSec = types.Int64Value(*res.IPv4.DHCP.LeaseTimeSec)
+				}
+				if res.IPv4.DHCP.GatewayAddress != "" {
+					dhcp.GatewayAddress = types.StringValue(res.IPv4.DHCP.GatewayAddress)
+				}
+				for _, dns := range res.IPv4.DHCP.DNSServers {
+					dhcp.DNSServers = append(dhcp.DNSServers, types.StringValue(dns))
+				}
+				ipv4.DHCPServer = dhcp
+			}
+			gm.IPv4 = ipv4
+		}
+		state.GatewayManaged = gm
+
+	case "SWITCH_MANAGED":
+		sm := &SwitchManagedNetworkModel{
+			VlanID: types.Int64Null(),
+		}
+		if res.VlanID != nil {
+			sm.VlanID = types.Int64Value(int64(*res.VlanID))
+		}
+		if res.DHCPGuarding != nil {
+			dg := &DHCPGuardingModel{
+				Enabled: types.BoolValue(res.DHCPGuarding.Enabled),
+			}
+			for _, ip := range res.DHCPGuarding.ServerIPs {
+				dg.ServerIPs = append(dg.ServerIPs, types.StringValue(ip))
+			}
+			sm.DHCPGuarding = dg
+		}
+		state.SwitchManaged = sm
+
+	case "UNMANAGED":
+		um := &UnmanagedNetworkModel{
+			VlanID: types.Int64Null(),
+		}
+		if res.VlanID != nil {
+			um.VlanID = types.Int64Value(int64(*res.VlanID))
+		}
+		state.Unmanaged = um
+	}
 }

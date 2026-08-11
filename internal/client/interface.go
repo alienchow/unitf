@@ -8,16 +8,19 @@ import (
 type NetworkClient interface {
 	CreateNetwork(ctx context.Context, siteID string, req *NetworkDto) (*NetworkDto, error)
 	GetNetwork(ctx context.Context, siteID, networkID string) (*NetworkDto, error)
+	ListNetworks(ctx context.Context, siteID string) ([]NetworkDto, error)
 	UpdateNetwork(ctx context.Context, siteID, networkID string, req *NetworkDto) (*NetworkDto, error)
 	DeleteNetwork(ctx context.Context, siteID, networkID string) error
 
 	CreateFirewallZone(ctx context.Context, siteID string, req *FirewallZoneDto) (*FirewallZoneDto, error)
 	GetFirewallZone(ctx context.Context, siteID, zoneID string) (*FirewallZoneDto, error)
+	ListFirewallZones(ctx context.Context, siteID string) ([]FirewallZoneDto, error)
 	UpdateFirewallZone(ctx context.Context, siteID, zoneID string, req *FirewallZoneDto) (*FirewallZoneDto, error)
 	DeleteFirewallZone(ctx context.Context, siteID, zoneID string) error
 
 	CreateFirewallPolicy(ctx context.Context, siteID string, req *FirewallPolicyDto) (*FirewallPolicyDto, error)
 	GetFirewallPolicy(ctx context.Context, siteID, policyID string) (*FirewallPolicyDto, error)
+	ListFirewallPolicies(ctx context.Context, siteID string) ([]FirewallPolicyDto, error)
 	UpdateFirewallPolicy(ctx context.Context, siteID, policyID string, req *FirewallPolicyDto) (*FirewallPolicyDto, error)
 	DeleteFirewallPolicy(ctx context.Context, siteID, policyID string) error
 
@@ -28,11 +31,13 @@ type NetworkClient interface {
 
 	CreateWifiBroadcast(ctx context.Context, siteID string, req *WifiBroadcastDto) (*WifiBroadcastDto, error)
 	GetWifiBroadcast(ctx context.Context, siteID, wlanID string) (*WifiBroadcastDto, error)
+	ListWifiBroadcasts(ctx context.Context, siteID string) ([]WifiBroadcastDto, error)
 	UpdateWifiBroadcast(ctx context.Context, siteID, wlanID string, req *WifiBroadcastDto) (*WifiBroadcastDto, error)
 	DeleteWifiBroadcast(ctx context.Context, siteID, wlanID string) error
 
 	CreateAclRule(ctx context.Context, siteID string, req *AclRuleDto) (*AclRuleDto, error)
 	GetAclRule(ctx context.Context, siteID, ruleID string) (*AclRuleDto, error)
+	ListAclRules(ctx context.Context, siteID string) ([]AclRuleDto, error)
 	UpdateAclRule(ctx context.Context, siteID, ruleID string, req *AclRuleDto) (*AclRuleDto, error)
 	DeleteAclRule(ctx context.Context, siteID, ruleID string) error
 
@@ -41,11 +46,13 @@ type NetworkClient interface {
 
 	CreateDnsPolicy(ctx context.Context, siteID string, req *DnsPolicyDto) (*DnsPolicyDto, error)
 	GetDnsPolicy(ctx context.Context, siteID, policyID string) (*DnsPolicyDto, error)
+	ListDnsPolicies(ctx context.Context, siteID string) ([]DnsPolicyDto, error)
 	UpdateDnsPolicy(ctx context.Context, siteID, policyID string, req *DnsPolicyDto) (*DnsPolicyDto, error)
 	DeleteDnsPolicy(ctx context.Context, siteID, policyID string) error
 
 	CreateTrafficMatchingList(ctx context.Context, siteID string, req *TrafficMatchingListDto) (*TrafficMatchingListDto, error)
 	GetTrafficMatchingList(ctx context.Context, siteID, listID string) (*TrafficMatchingListDto, error)
+	ListTrafficMatchingLists(ctx context.Context, siteID string) ([]TrafficMatchingListDto, error)
 	UpdateTrafficMatchingList(ctx context.Context, siteID, listID string, req *TrafficMatchingListDto) (*TrafficMatchingListDto, error)
 	DeleteTrafficMatchingList(ctx context.Context, siteID, listID string) error
 

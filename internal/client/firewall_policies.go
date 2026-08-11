@@ -79,3 +79,14 @@ func (c *Client) DeleteFirewallPolicy(ctx context.Context, siteID, policyID stri
 	path := "/proxy/network/integration/v1/sites/" + siteID + "/firewall/policies/" + policyID
 	return c.DoRequest(ctx, "DELETE", path, nil, nil)
 }
+
+func (c *Client) ListFirewallPolicies(ctx context.Context, siteID string) ([]FirewallPolicyDto, error) {
+	path := "/proxy/network/integration/v1/sites/" + siteID + "/firewall/policies"
+	var resp struct {
+		Data []FirewallPolicyDto `json:"data"`
+	}
+	if err := c.DoRequest(ctx, "GET", path, nil, &resp); err != nil {
+		return nil, err
+	}
+	return resp.Data, nil
+}
