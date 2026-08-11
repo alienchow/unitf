@@ -371,17 +371,17 @@ func buildNetworkDto(plan NetworkResourceModel) *client.NetworkDto {
 
 func populateStateFromDto(state *NetworkResourceModel, res *client.NetworkDto) {
 	state.Name = types.StringValue(res.Name)
-	if res.Type == "" {
-		state.Type = types.StringNull()
-	} else {
-		state.Type = types.StringValue(res.Type)
+	networkType := res.Type
+	if networkType == "" {
+		networkType = "GATEWAY_MANAGED"
 	}
+	state.Type = types.StringValue(networkType)
 
 	state.GatewayManaged = nil
 	state.SwitchManaged = nil
 	state.Unmanaged = nil
 
-	switch res.Type {
+	switch networkType {
 	case "GATEWAY_MANAGED":
 		gm := &GatewayManagedNetworkModel{
 			VlanID:       types.Int64Null(),

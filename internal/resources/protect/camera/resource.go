@@ -53,11 +53,10 @@ func (r *ProtectCameraResource) Schema(ctx context.Context, req resource.SchemaR
 		Description: "Manages a UniFi Protect Camera.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Computed:    true,
+				Required:    true,
 				Description: "Camera UUID (Cameras are adopted, we just configure them).",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
-					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"name": schema.StringAttribute{

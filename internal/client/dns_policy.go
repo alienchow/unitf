@@ -46,7 +46,7 @@ func (c *Client) DeleteDnsPolicy(ctx context.Context, siteID, policyID string) e
 }
 
 func (c *Client) ListDnsPolicies(ctx context.Context, siteID string) ([]DnsPolicyDto, error) {
-	path := "/proxy/network/integration/v1/sites/" + siteID + "/dns-policies"
+	path := "/proxy/network/integration/v1/sites/" + siteID + "/dns/policies"
 	var resp struct {
 		Data []DnsPolicyDto `json:"data"`
 	}
