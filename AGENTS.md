@@ -35,3 +35,7 @@ These guidelines are meant for autonomous AI agents contributing to this codebas
     *   **Context:** (Explain why this change is being made)
     *   **Changes:** (Describe what modifications are included)
     *   **Tests:** (Detail how this change was validated)
+
+## 7. Linting & Formatting
+*   **Single Source of Truth:** Use `golangci-lint` as the primary tool for linting, formatting, vetting, and security checks.
+*   **No Redundant Steps:** Do not introduce separate CI steps or standalone commands for `go fmt`, `go vet`, or `gosec`. Rely entirely on the `.golangci.yml` configuration.
