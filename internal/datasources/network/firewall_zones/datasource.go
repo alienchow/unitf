@@ -19,7 +19,7 @@ type FirewallZonesDataSource struct {
 }
 
 type FirewallZonesDataSourceModel struct {
-	SiteID types.String `tfsdk:"site_id"`
+	SiteID types.String        `tfsdk:"site_id"`
 	Items  []FirewallzoneModel `tfsdk:"items"`
 }
 

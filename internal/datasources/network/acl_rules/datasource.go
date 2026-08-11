@@ -19,7 +19,7 @@ type AclRulesDataSource struct {
 }
 
 type AclRulesDataSourceModel struct {
-	SiteID types.String `tfsdk:"site_id"`
+	SiteID types.String   `tfsdk:"site_id"`
 	Items  []AclruleModel `tfsdk:"items"`
 }
 

@@ -19,7 +19,7 @@ type NetworksDataSource struct {
 }
 
 type NetworksDataSourceModel struct {
-	SiteID types.String `tfsdk:"site_id"`
+	SiteID types.String   `tfsdk:"site_id"`
 	Items  []NetworkModel `tfsdk:"items"`
 }
 

@@ -19,7 +19,7 @@ type FirewallPoliciesDataSource struct {
 }
 
 type FirewallPoliciesDataSourceModel struct {
-	SiteID types.String `tfsdk:"site_id"`
+	SiteID types.String          `tfsdk:"site_id"`
 	Items  []FirewallpolicyModel `tfsdk:"items"`
 }
 

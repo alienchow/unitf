@@ -19,7 +19,7 @@ type TrafficMatchingListsDataSource struct {
 }
 
 type TrafficMatchingListsDataSourceModel struct {
-	SiteID types.String `tfsdk:"site_id"`
+	SiteID types.String               `tfsdk:"site_id"`
 	Items  []TrafficmatchinglistModel `tfsdk:"items"`
 }
 
